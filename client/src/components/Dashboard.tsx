@@ -56,9 +56,18 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        <div className="mt-4">
-          <h1 className="text-2xl font-bold text-gray-900">Namaskara, Rohan!</h1>
-          <p className="text-gray-600">Here's what's happening with your farm today</p>
+        <div className="mt-4 flex items-center justify-between sticky-login-row">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Namaskara, Rohan!</h1>
+            <p className="text-gray-600">Here's what's happening with your farm today</p>
+          </div>
+          <button
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center gap-2 shadow-md sticky-login-btn"
+            onClick={() => { window.location.href = 'http://localhost:5000/login-signup'; }}
+          >
+            <span className="material-icons"></span>
+            Login / Signup
+          </button>
         </div>
       </div>
 

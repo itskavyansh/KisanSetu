@@ -1,3 +1,18 @@
+/* Sticky Login/Signup button beside Namaskara, Rohan! */
+.sticky-login-row {
+  position: sticky;
+  top: 64px; /* Adjust as needed for your header height */
+  z-index: 30;
+  background: #fff;
+  padding-right: 1rem;
+}
+
+.sticky-login-btn {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
 .App {
   text-align: center;
 }
