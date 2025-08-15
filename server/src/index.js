@@ -27,6 +27,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Routes
 app.use('/auth', authRoutes);
 app.use('/login-signup', loginRoutes);
+app.use('/', loginRoutes);
 app.use('/api/crop-health', cropHealthRoutes);
 app.use('/api/market', marketIntelligenceRoutes);
 app.use('/api/schemes', governmentSchemesRoutes);

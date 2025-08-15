@@ -14,9 +14,22 @@ import {
   CalendarIcon,
   UserCircleIcon
 } from '@heroicons/react/24/outline';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
+  const { currentUser, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('Failed to log out:', error);
+    }
+  };
+
   return (
     <div className="w-64 bg-white shadow-lg">
       {/* Header */}
@@ -33,7 +46,7 @@ const Sidebar: React.FC = () => {
       {/* Navigation Menu */}
       <nav className="p-4">
         <div className="space-y-2">
-          <NavLink to="/" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
+          <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
             <CheckIcon className="w-5 h-5 mr-3" />
             Dashboard
           </NavLink>
@@ -105,10 +118,18 @@ const Sidebar: React.FC = () => {
         <div className="flex items-center">
           <UserCircleIcon className="w-10 h-10 text-gray-400 mr-3" />
           <div>
-            <p className="text-sm font-medium text-gray-900">Rohan Kumar</p>
-            <p className="text-xs text-gray-500">Tomato Farmer, Karnataka</p>
+            <p className="text-sm font-medium text-gray-900">
+              {currentUser?.displayName || currentUser?.email}
+            </p>
+            <p className="text-xs text-gray-500">Farmer, Karnataka</p>
           </div>
         </div>
+        <button
+          onClick={handleLogout}
+          className="mt-2 w-full text-left text-sm text-red-600 hover:text-red-800"
+        >
+          Sign out
+        </button>
       </div>
     </div>
   );

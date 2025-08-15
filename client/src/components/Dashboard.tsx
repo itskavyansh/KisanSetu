@@ -25,7 +25,7 @@ import { governmentSchemesAPI } from '../services/governmentSchemesService';
 import { carbonCreditsAPI } from '../services/carbonCreditsService';
 import { voiceAPI } from '../services/voiceService';
 import { useNavigate } from 'react-router-dom';
-import CropScanPage from '../pages/CropScanPage';
+import { useAuth } from '../contexts/AuthContext';
 
 const Dashboard: React.FC = () => {
   const [marketData, setMarketData] = useState<any>(null);
@@ -36,6 +36,7 @@ const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
   // Load initial data
   useEffect(() => {
@@ -136,16 +137,11 @@ const Dashboard: React.FC = () => {
         
         <div className="mt-4 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Namaskara, Rohan!</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Namaskara, {currentUser?.displayName || 'Farmer'}!
+            </h1>
             <p className="text-gray-600">Here's what's happening with your farm today</p>
           </div>
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center gap-2 shadow-md"
-            onClick={() => { window.location.href = 'http://localhost:5000/login-signup'; }}
-          >
-            <span className="material-icons"></span>
-            Login / Signup
-          </button>
         </div>
       </div>
 
@@ -254,14 +250,14 @@ const Dashboard: React.FC = () => {
                 
                 <div className="flex flex-col justify-end space-y-3">
                   <button 
-                    onClick={() => window.location.href = '/market'}
+                    onClick={() => navigate('/market')}
                     className="flex items-center text-kisan-green hover:text-green-600 font-medium"
                   >
                     <ChartBarIcon className="w-5 h-5 mr-2" />
                     View Price Trends
                   </button>
                   <button 
-                    onClick={() => window.location.href = '/market'}
+                    onClick={() => navigate('/market')}
                     className="flex items-center text-kisan-green hover:text-green-600 font-medium"
                   >
                     <TruckIcon className="w-5 h-5 mr-2" />
@@ -284,7 +280,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Government Schemes</h2>
               <button 
-                onClick={() => window.location.href = '/schemes'}
+                onClick={() => navigate('/schemes')}
                 className="text-kisan-blue hover:text-blue-700 text-sm font-medium"
               >
                 View All
@@ -306,7 +302,7 @@ const Dashboard: React.FC = () => {
                         {scheme.status}
                       </span>
                       <button 
-                        onClick={() => window.location.href = `/schemes/${scheme.id}`}
+                        onClick={() => navigate(`/schemes/${scheme.id}`)}
                         className="text-kisan-blue hover:text-blue-700 text-sm font-medium"
                       >
                         Learn More
@@ -360,7 +356,7 @@ const Dashboard: React.FC = () => {
             </div>
             
             <button 
-              onClick={() => window.location.href = '/carbon-credits'}
+              onClick={() => navigate('/carbon-credits')}
               className="bg-kisan-green text-white px-6 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
             >
               Join Program
