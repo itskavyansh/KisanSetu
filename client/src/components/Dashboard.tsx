@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MagnifyingGlassIcon,
   MicrophoneIcon,
@@ -20,9 +20,75 @@ import {
   SparklesIcon,
   CogIcon
 } from '@heroicons/react/24/outline';
-
+import { marketAPI } from '../services/marketService';
+import { governmentSchemesAPI } from '../services/governmentSchemesService';
+import { carbonCreditsAPI } from '../services/carbonCreditsService';
+import { voiceAPI } from '../services/voiceService';
+import { useNavigate } from 'react-router-dom';
+import CropScanPage from '../pages/CropScanPage';
 
 const Dashboard: React.FC = () => {
+  const [marketData, setMarketData] = useState<any>(null);
+  const [schemes, setSchemes] = useState<any[]>([]);
+  const [carbonInfo, setCarbonInfo] = useState<any>(null);
+  const [voiceQuery, setVoiceQuery] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
+
+  // Load initial data
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Load market data for tomato (default crop)
+      const marketResponse = await marketAPI.getPrices('tomato');
+      setMarketData(marketResponse.data);
+
+      // Load government schemes
+      const schemesResponse = await governmentSchemesAPI.searchSchemes({});
+      setSchemes(schemesResponse.data.schemes.slice(0, 3)); // Show first 3 schemes
+
+      // Load carbon credit market info
+      const carbonResponse = await carbonCreditsAPI.getMarketInfo();
+      setCarbonInfo(carbonResponse.data);
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVoiceQuery = async () => {
+    if (!voiceQuery.trim()) return;
+
+    try {
+      setIsLoading(true);
+      const response = await voiceAPI.chat({
+        query: voiceQuery,
+        language: 'english', // Default to English for now
+        userId: 'farmer001'
+      });
+
+      setAiResponse(response.data.response);
+    } catch (error) {
+      console.error('Error processing voice query:', error);
+      setAiResponse('Sorry, I encountered an error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCropScan = () => {
+    navigate('/scan-crop');
+  };
+
   return (
     <div className="flex-1 overflow-auto">
       {/* Top Bar */}
@@ -33,14 +99,26 @@ const Dashboard: React.FC = () => {
               <input
                 type="text"
                 placeholder="Ask anything..."
+                value={voiceQuery}
+                onChange={(e) => setVoiceQuery(e.target.value)}
                 className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kisan-green focus:border-transparent"
+                onKeyPress={(e) => e.key === 'Enter' && handleVoiceQuery()}
               />
-              <MicrophoneIcon className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <button
+                onClick={handleVoiceQuery}
+                disabled={isLoading}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-kisan-green"
+              >
+                <MicrophoneIcon className="w-5 h-5" />
+              </button>
             </div>
           </div>
           
           <div className="flex items-center space-x-4 ml-6">
-            <button className="bg-kisan-green text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-600 transition-colors">
+            <button 
+              onClick={handleCropScan}
+              className="bg-kisan-green text-white px-4 py-2 rounded-lg flex items-center space-x-2 hover:bg-green-600 transition-colors"
+            >
               <CameraIcon className="w-5 h-5" />
               <span>Scan Crop</span>
             </button>
@@ -56,13 +134,13 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
         
-        <div className="mt-4 flex items-center justify-between sticky-login-row">
+        <div className="mt-4 flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Namaskara, Rohan!</h1>
             <p className="text-gray-600">Here's what's happening with your farm today</p>
           </div>
           <button
-            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center gap-2 shadow-md sticky-login-btn"
+            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg flex items-center gap-2 shadow-md"
             onClick={() => { window.location.href = 'http://localhost:5000/login-signup'; }}
           >
             <span className="material-icons"></span>
@@ -70,6 +148,19 @@ const Dashboard: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* AI Response Display */}
+      {aiResponse && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-6 mt-4">
+          <div className="flex items-start">
+            <SparklesIcon className="w-6 h-6 text-blue-600 mr-3 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-blue-800">AI Assistant Response</h3>
+              <p className="text-blue-700 mt-1">{aiResponse}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="p-6 space-y-6">
@@ -90,7 +181,9 @@ const Dashboard: React.FC = () => {
               <CurrencyDollarIcon className="w-8 h-8 text-kisan-green mr-3" />
               <div>
                 <h3 className="font-semibold text-green-800">Today's Price</h3>
-                <p className="text-sm text-green-600">₹28/kg (↑12%)</p>
+                <p className="text-sm text-green-600">
+                  {marketData ? `₹${marketData.currentPrice}/kg (↑${marketData.percentageChange}%)` : 'Loading...'}
+                </p>
               </div>
             </div>
           </div>
@@ -109,146 +202,129 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center">
               <ExclamationCircleIcon className="w-8 h-8 text-kisan-purple mr-3" />
               <div>
-                <h3 className="font-semibold text-purple-800">New Subsidy</h3>
-                <p className="text-sm text-purple-600">Drip Irrigation</p>
+                <h3 className="font-semibold text-purple-800">Carbon Credits</h3>
+                <p className="text-sm text-purple-600">
+                  {carbonInfo ? `₹${carbonInfo.currentPrice}/tonne` : 'Loading...'}
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Crop Health Analysis */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900">Crop Health Analysis</h2>
-              <a href="#" className="text-kisan-green hover:text-green-600 text-sm font-medium">View History</a>
-            </div>
-          </div>
-          
-          <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <div className="bg-gray-100 rounded-lg p-4 mb-4">
-                  <div className="w-full h-64 bg-gradient-to-br from-green-400 to-green-600 rounded-lg flex items-center justify-center">
-                    <div className="text-white text-center">
-                      <div className="w-32 h-32 bg-white bg-opacity-20 rounded-full flex items-center justify-center mb-2">
-                        <CameraIcon className="w-16 h-16" />
-                      </div>
-                      <p className="text-sm">Crop Image</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex space-x-3">
-                  <button className="flex-1 bg-kisan-green text-white py-2 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-green-600 transition-colors">
-                    <CameraIcon className="w-5 h-5" />
-                    <span>Take New Photo</span>
-                  </button>
-                  <button className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-200 transition-colors">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                    </svg>
-                    <span>Upload</span>
-                  </button>
-                </div>
-              </div>
-              
-              <div>
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-                  <div className="flex items-start">
-                    <ExclamationTriangleIcon className="w-6 h-6 text-yellow-600 mr-3 mt-0.5" />
-                    <div>
-                      <h3 className="font-semibold text-yellow-800">Early Blight Detected</h3>
-                      <p className="text-sm text-yellow-700 mt-1">
-                        The yellow spots on your tomato leaves indicate Early Blight (Alternaria solani), a common fungal disease.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <h4 className="font-medium text-gray-900 mb-3">Recommended Actions:</h4>
-                  <ul className="space-y-2">
-                    {[
-                      "Remove and destroy infected leaves to prevent spread",
-                      "Apply copper-based fungicide available at Krishak Agro Store (2km away)",
-                      "Avoid overhead watering to reduce leaf moisture",
-                      "Consider crop rotation next season"
-                    ].map((action, index) => (
-                      <li key={index} className="flex items-start">
-                        <CheckIcon className="w-5 h-5 text-kisan-green mr-3 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700">{action}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                
-                <div className="flex space-x-3">
-                  <button className="flex-1 bg-kisan-green text-white py-2 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-green-600 transition-colors">
-                    <PlayIcon className="w-5 h-5" />
-                    <span>Watch Treatment Video</span>
-                  </button>
-                  <button className="flex-1 bg-gray-100 text-gray-700 py-2 px-4 rounded-lg flex items-center justify-center space-x-2 hover:bg-gray-200 transition-colors">
-                    <ChatBubbleLeftIcon className="w-5 h-5" />
-                    <span>Ask Expert</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Market Analysis */}
+        {/* Market Analysis with Real Data */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900">Market Analysis</h2>
               <div className="flex items-center space-x-2 text-sm text-gray-500">
-                <span>Last Updated: 2 hours ago</span>
-                <ArrowPathIcon className="w-4 h-4 cursor-pointer hover:text-gray-700" />
+                <span>Last Updated: {marketData?.lastUpdated ? new Date(marketData.lastUpdated).toLocaleString() : 'Loading...'}</span>
+                <button 
+                  onClick={loadDashboardData}
+                  disabled={isLoading}
+                  className="hover:text-gray-700"
+                >
+                  <ArrowPathIcon className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+                </button>
               </div>
             </div>
           </div>
           
           <div className="p-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <div className="flex items-center mb-4">
-                  <CurrencyDollarIcon className="w-12 h-12 text-kisan-green mr-4" />
-                  <div>
-                    <div className="text-3xl font-bold text-gray-900">₹28/kg</div>
-                    <div className="flex items-center text-sm text-green-600">
-                      <span className="mr-1">↑12% from yesterday</span>
+            {marketData ? (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-center mb-4">
+                    <CurrencyDollarIcon className="w-12 h-12 text-kisan-green mr-4" />
+                    <div>
+                      <div className="text-3xl font-bold text-gray-900">₹{marketData.currentPrice}/kg</div>
+                      <div className="flex items-center text-sm text-green-600">
+                        <span className="mr-1">↑{marketData.percentageChange}% from yesterday</span>
+                      </div>
                     </div>
+                  </div>
+                  
+                  <p className="text-gray-700 mb-4">{marketData.recommendation}</p>
+                  
+                  <div className="bg-kisan-light-blue border border-blue-200 rounded-lg p-4">
+                    <p className="text-sm text-blue-800">
+                      <strong>Recommendation:</strong> {marketData.recommendation}
+                    </p>
                   </div>
                 </div>
                 
-                <p className="text-gray-700 mb-4">
-                  Prices are expected to rise by 5-8% in the next 3 days due to reduced supply from Maharashtra.
-                </p>
-                
-                <div className="bg-kisan-light-blue border border-blue-200 rounded-lg p-4">
-                  <p className="text-sm text-blue-800">
-                    <strong>Recommendation:</strong> Consider waiting 2 days before selling your harvest for maximum profit.
-                  </p>
+                <div className="flex flex-col justify-end space-y-3">
+                  <button 
+                    onClick={() => window.location.href = '/market'}
+                    className="flex items-center text-kisan-green hover:text-green-600 font-medium"
+                  >
+                    <ChartBarIcon className="w-5 h-5 mr-2" />
+                    View Price Trends
+                  </button>
+                  <button 
+                    onClick={() => window.location.href = '/market'}
+                    className="flex items-center text-kisan-green hover:text-green-600 font-medium"
+                  >
+                    <TruckIcon className="w-5 h-5 mr-2" />
+                    Transport Options
+                  </button>
                 </div>
               </div>
-              
-              <div className="flex flex-col justify-end space-y-3">
-                <a href="#" className="flex items-center text-kisan-green hover:text-green-600 font-medium">
-                  <ChartBarIcon className="w-5 h-5 mr-2" />
-                  View Price Trends
-                </a>
-                <a href="#" className="flex items-center text-kisan-green hover:text-green-600 font-medium">
-                  <TruckIcon className="w-5 h-5 mr-2" />
-                  Transport Options
-                </a>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kisan-green mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading market data...</p>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* Carbon Credits */}
+        {/* Government Schemes with Real Data */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Government Schemes</h2>
+              <button 
+                onClick={() => window.location.href = '/schemes'}
+                className="text-kisan-blue hover:text-blue-700 text-sm font-medium"
+              >
+                View All
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            {schemes.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {schemes.map((scheme) => (
+                  <div key={scheme.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <h3 className="text-lg font-bold text-gray-800 mb-2">{scheme.shortName}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{scheme.description}</p>
+                    <div className="flex items-center justify-between">
+                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        scheme.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {scheme.status}
+                      </span>
+                      <button 
+                        onClick={() => window.location.href = `/schemes/${scheme.id}`}
+                        className="text-kisan-blue hover:text-blue-700 text-sm font-medium"
+                      >
+                        Learn More
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-kisan-green mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading schemes...</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Carbon Credits Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
             <div className="flex items-center justify-between">
@@ -264,16 +340,16 @@ const Dashboard: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">MRV Challenge</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Current Market Price</h4>
                 <p className="text-sm text-gray-600">
-                  Current Monitoring, Reporting, and Verification (MRV) systems are expensive and complex for smallholder farmers.
+                  {carbonInfo ? `₹${carbonInfo.currentPrice} per tonne CO₂` : 'Loading...'}
                 </p>
               </div>
               
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Our Solution</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Market Trend</h4>
                 <p className="text-sm text-gray-600">
-                  Project Kisan provides affordable MRV tools specifically designed for small-scale farming operations.
+                  {carbonInfo ? carbonInfo.trend : 'Loading...'}
                 </p>
               </div>
             </div>
@@ -283,143 +359,23 @@ const Dashboard: React.FC = () => {
               <div className="text-2xl font-bold text-kisan-green">₹15,000 - ₹25,000</div>
             </div>
             
-            <button className="bg-kisan-green text-white px-6 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors">
+            <button 
+              onClick={() => window.location.href = '/carbon-credits'}
+              className="bg-kisan-green text-white px-6 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
+            >
               Join Program
             </button>
           </div>
         </div>
 
-        {/* Government Schemes and Nature-based Solutions */}
-        <div className="p-6 space-y-8">
-          {/* Government Schemes Section */}
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-800">Government Schemes</h2>
-              <a href="#" className="text-kisan-blue hover:text-blue-700 text-sm font-medium">View All</a>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* PM Krishi Sinchai Yojana */}
-              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-kisan-light-blue rounded-full flex items-center justify-center">
-                    <CloudArrowDownIcon className="w-6 h-6 text-kisan-blue" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">PM Krishi Sinchai Yojana</h3>
-                <p className="text-gray-600 text-sm mb-4">Get 50% subsidy on drip irrigation equipment for water conservation.</p>
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Eligible</span>
-                  <a href="#" className="text-kisan-blue hover:text-blue-700 text-sm font-medium">Apply Now</a>
-                </div>
-              </div>
-
-              {/* Soil Health Card Scheme */}
-              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-kisan-light-purple rounded-full flex items-center justify-center">
-                    <SparklesIcon className="w-6 h-6 text-kisan-purple" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">Soil Health Card Scheme</h3>
-                <p className="text-gray-600 text-sm mb-4">Free soil testing and personalized fertilizer recommendations.</p>
-                <div className="flex items-center justify-between">
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-medium rounded-full">Renewal Due</span>
-                  <a href="#" className="text-kisan-blue hover:text-blue-700 text-sm font-medium">Renew</a>
-                </div>
-              </div>
-
-              {/* Farm Mechanization Subsidy */}
-              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-100">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                    <CogIcon className="w-6 h-6 text-orange-600" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-bold text-gray-800 mb-2">Farm Mechanization Subsidy</h3>
-                <p className="text-gray-600 text-sm mb-4">40% subsidy on farm equipment purchase to increase productivity.</p>
-                <div className="flex items-center justify-between">
-                  <a href="#" className="text-kisan-blue hover:text-blue-700 text-sm font-medium">Check Eligibility</a>
-                  <a href="#" className="text-kisan-blue hover:text-blue-700 text-sm font-medium">Learn More</a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Nature-based Solutions Section */}
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-800">Nature-based Solutions (NbS)</h2>
-              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">Climate Action</span>
-            </div>
-            
-            <p className="text-gray-700 mb-6">
-              Nature-based Solutions like agroforestry and climate-smart agriculture can help sequester carbon while improving your farm's ecosystem health and resilience.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-              {/* Agroforestry Benefits */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Agroforestry Benefits</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Additional income from timber and fruits</span>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Improved soil fertility and water retention</span>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Natural pest control through biodiversity</span>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Carbon credit opportunities</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Climate-Smart Rice Cultivation */}
-              <div>
-                <h3 className="text-lg font-bold text-gray-800 mb-4">Climate-Smart Rice Cultivation</h3>
-                <div className="space-y-3">
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Alternate wetting and drying to reduce methane</span>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Precision nutrient management</span>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Crop residue management</span>
-                  </div>
-                  <div className="flex items-start">
-                    <CheckIcon className="w-5 h-5 text-green-600 mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700">Lower costs and higher yield</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Call to Action Button */}
-            <div className="text-center">
-              <button className="bg-kisan-green hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md flex items-center justify-center mx-auto">
-                <SparklesIcon className="w-5 h-5 mr-2" />
-                Get Personalized NbS Plan
-              </button>
-            </div>
-          </div>
-
-          {/* Floating Microphone Icon */}
-          <div className="fixed bottom-6 right-6">
-            <button className="w-14 h-14 bg-kisan-green hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-colors duration-200">
-              <MicrophoneIcon className="w-6 h-6 text-white" />
-            </button>
-          </div>
+        {/* Floating Microphone Icon */}
+        <div className="fixed bottom-6 right-6">
+          <button 
+            onClick={() => setVoiceQuery('')}
+            className="w-14 h-14 bg-kisan-green hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-colors duration-200"
+          >
+            <MicrophoneIcon className="w-6 h-6 text-white" />
+          </button>
         </div>
       </div>
     </div>
