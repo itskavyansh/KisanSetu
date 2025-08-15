@@ -1,25 +1,16 @@
-// Temporary simplified version to get the server running
+const { VertexAI } = require('@google-cloud/vertexai');
 require('dotenv').config();
 
-// Mock objects for now - we'll replace these with real ones later
-const mockVertexAI = {
-  getGenerativeModel: (config) => ({
-    generateContent: async () => ({
-      response: {
-        text: () => "Mock AI response - Google Cloud not configured yet"
-      }
-    })
-  })
-};
+const vertexAI = new VertexAI({
+	project: process.env.GOOGLE_CLOUD_PROJECT_ID,
+	location: process.env.VERTEX_AI_LOCATION || 'us-central1',
+});
 
-const mockStorage = {
-  bucket: () => ({})
-};
-
-const mockGeminiModel = mockVertexAI.getGenerativeModel({});
+const geminiModel = vertexAI.getGenerativeModel({
+	model: process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash',
+});
 
 module.exports = {
-  vertexAI: mockVertexAI,
-  storage: mockStorage,
-  geminiModel: mockGeminiModel,
+	vertexAI,
+	geminiModel,
 };

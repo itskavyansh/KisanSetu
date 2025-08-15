@@ -20,31 +20,30 @@ const upload = multer({
 
 // POST /api/crop-health/analyze
 router.post('/analyze', upload.single('image'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: 'No image file provided' });
-    }
+	try {
+		if (!req.file) {
+			return res.status(400).json({ error: 'No image file provided' });
+		}
 
-    const { cropType } = req.body;
-    const imageBuffer = req.file.buffer;
+		const { cropType } = req.body;
+		const imageBuffer = req.file.buffer;
+		const mimeType = req.file.mimetype || 'image/jpeg';
 
-    // Analyze the crop image
-    const analysis = await cropHealthService.analyzeCropImage(imageBuffer, cropType);
+		const analysis = await cropHealthService.analyzeCropImage(imageBuffer, cropType, mimeType);
 
-    res.json({
-      success: true,
-      data: analysis,
-      message: 'Crop analysis completed successfully'
-    });
-
-  } catch (error) {
-    console.error('Crop health analysis error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to analyze crop image',
-      message: error.message
-    });
-  }
+		res.json({
+			success: true,
+			data: analysis,
+			message: 'Crop analysis completed successfully',
+		});
+	} catch (error) {
+		console.error('Crop health analysis error:', error);
+		res.status(500).json({
+			success: false,
+			error: 'Failed to analyze crop image',
+			message: error.message,
+		});
+	}
 });
 
 // GET /api/crop-health/history
