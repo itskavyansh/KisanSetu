@@ -1,6 +1,8 @@
 // client/src/pages/MarketPage.tsx
 import React, { useState, useEffect } from 'react';
 import AnalyticsDashboard from '../components/charts/AnalyticsDashboard';
+import PricePredictionChart from '../components/analytics/PricePredictionChart';
+import SeasonalTrendsChart from '../components/analytics/SeasonalTrendsChart';
 import apiClient from '../services/apiService';
 
 const MarketPage: React.FC = () => {
@@ -9,9 +11,7 @@ const MarketPage: React.FC = () => {
   const [selectedMarket, setSelectedMarket] = useState('Bangalore');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [marketData, setMarketData] = useState<any>(null);
-  const [trends, setTrends] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const crops = [
     { value: 'Potato', label: 'Potato' },
@@ -44,42 +44,65 @@ const MarketPage: React.FC = () => {
   const loadMarketData = async () => {
     try {
       setLoading(true);
-      setError(null);
 
       console.log('🔄 Loading market data for:', { selectedCrop, selectedState, selectedMarket, selectedYear });
 
       // Fetch data from the new Agmarknet API
-      const [pricesResponse, trendsResponse] = await Promise.all([
-        apiClient.get(`/agmarknet/prices/${selectedCrop}/${selectedState}/${selectedMarket}`),
-        generateTrendData(selectedCrop, selectedState, selectedMarket, selectedYear)
-      ]);
+      const pricesResponse = await apiClient.get(`/agmarknet/prices/${selectedCrop}/${selectedState}/${selectedMarket}`);
 
       console.log('📊 Prices API Response:', pricesResponse.data);
+      console.log('📊 Response structure:', {
+        success: pricesResponse.data.success,
+        hasData: !!pricesResponse.data.data,
+        hasPrices: !!pricesResponse.data.data?.prices,
+        pricesLength: pricesResponse.data.data?.prices?.length || 0,
+        fullResponse: pricesResponse.data
+      });
+      if (pricesResponse.data.data?.prices?.length > 0) {
+        console.log('📊 First price record:', pricesResponse.data.data.prices[0]);
+        console.log('📊 All prices:', pricesResponse.data.data.prices);
+      }
 
       // Set market data from Agmarknet API
       if (pricesResponse.data.success && pricesResponse.data.data.prices && pricesResponse.data.data.prices.length > 0) {
+        console.log('✅ Real price data received:', pricesResponse.data.data.prices.length, 'records');
+        
         const currentPrice = parseInt(pricesResponse.data.data.prices[0]?.['Model Prize']) || 1500;
         const previousPrice = parseInt(pricesResponse.data.data.prices[1]?.['Model Prize']) || 1450;
-        const percentageChange = previousPrice ? ((currentPrice - previousPrice) / previousPrice * 100) : 0;
+        
+        // Generate mandi prices from real data
+        const realMandiPrices = generateMandiPricesFromRealData(pricesResponse.data.data.prices, selectedCrop, selectedState);
+        
+        console.log('🎉 SUCCESS: Setting real market data!', {
+          currentPrice,
+          previousPrice,
+          recordCount: pricesResponse.data.data.prices.length,
+          source: 'Real Agmarknet Data'
+        });
         
         setMarketData({
           currentPrice: currentPrice,
           previousPrice: previousPrice,
-          percentageChange: Math.round(percentageChange * 10) / 10,
           lastUpdated: pricesResponse.data.data.lastUpdated,
           recommendation: generateRecommendation(selectedCrop, selectedState),
-          mandiPrices: generateMandiPrices(selectedCrop, selectedState),
+          mandiPrices: realMandiPrices,
           bestTimeToSell: 'Morning hours (6-10 AM)',
-          transportOptions: 'Truck, Tractor trolley'
+          transportOptions: 'Truck, Tractor trolley',
+          source: 'Real Agmarknet Data'
         });
       } else {
         console.log('⚠️ No real price data available, using fallback data');
+        console.log('⚠️ API Response structure:', pricesResponse.data);
+        console.log('⚠️ Response data keys:', Object.keys(pricesResponse.data));
+        if (pricesResponse.data.data) {
+          console.log('⚠️ Data object keys:', Object.keys(pricesResponse.data.data));
+        }
         // If no real data, use fallback
         setMarketData(generateFallbackMarketData(selectedCrop, selectedState));
       }
 
-      // Set trends data
-      setTrends(trendsResponse);
+      // Set trends data - use real data if available, otherwise generated data
+
     } catch (err: any) {
       console.error('❌ Error loading market data:', err);
       console.error('❌ Error details:', {
@@ -90,60 +113,15 @@ const MarketPage: React.FC = () => {
       });
       
       // Don't show error to user, just use fallback data
-      setError(null);
       
       // Set fallback data
       setMarketData(generateFallbackMarketData(selectedCrop, selectedState));
-      
-      setTrends(generateTrendData(selectedCrop, selectedState, selectedMarket, selectedYear));
     } finally {
       setLoading(false);
     }
   };
 
-  // Generate trend data for the last 7 days
-  const generateTrendData = (crop: string, state: string, market: string, year: number) => {
-    const trends: Array<{date: string; day: string; price: number; change: number}> = [];
-    const today = new Date();
-    
-    // Base price for different crops
-    const basePrices = {
-      'Potato': 1500,
-      'Tomato': 2000,
-      'Onion': 1800,
-      'Rice': 2500,
-      'Wheat': 2200,
-      'Maize': 1800,
-      'Cotton': 6000,
-      'Sugarcane': 350
-    };
-    
-    const basePrice = basePrices[crop as keyof typeof basePrices] || 1500;
-    
-    for (let i = 6; i >= 0; i--) {
-      const date = new Date(today);
-      date.setDate(date.getDate() - i);
-      
-      // Generate realistic price variations
-      const variation = (Math.random() - 0.5) * 0.2; // ±10% variation
-      const price = Math.round(basePrice * (1 + variation));
-      
-      // Calculate price change from previous day
-      const previousPrice = i === 6 ? basePrice : trends[trends.length - 1]?.price || basePrice;
-      const change = previousPrice ? ((price - previousPrice) / previousPrice * 100) : 0;
-      
-      trends.push({
-        date: date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }),
-        day: date.toLocaleDateString('en-IN', { weekday: 'short' }),
-        price: price,
-        change: Math.round(change * 10) / 10
-      });
-    }
-    
-    return {
-      dailyPrices: trends
-    };
-  };
+
 
   // Generate mandi prices for different markets
   const generateMandiPrices = (crop: string, state: string) => {
@@ -155,11 +133,49 @@ const MarketPage: React.FC = () => {
     stateMarkets.forEach(market => {
       // Generate realistic price variations between markets
       const variation = (Math.random() - 0.5) * 0.15; // ±7.5% variation
-      const basePrice = 1500; // Default base price
+      const basePrice = getBasePrice(crop);
       mandiPrices[market] = Math.round(basePrice * (1 + variation));
     });
     
     return mandiPrices;
+  };
+
+  // Generate mandi prices from real API data
+  const generateMandiPricesFromRealData = (prices: any[], crop: string, state: string) => {
+    const mandiPrices: { [key: string]: number } = {};
+    
+    // Get markets for the selected state
+    const stateMarkets = markets[state as keyof typeof markets] || ['Default Market'];
+    
+    // Use real data for the selected market, generate for others
+    stateMarkets.forEach(market => {
+      if (market === selectedMarket && prices.length > 0) {
+        // Use real data for selected market
+        mandiPrices[market] = parseInt(prices[0]['Model Prize']) || getBasePrice(crop);
+      } else {
+        // Generate realistic data for other markets
+        const basePrice = getBasePrice(crop);
+        const variation = (Math.random() - 0.5) * 0.25; // ±12.5% variation
+        mandiPrices[market] = Math.round(basePrice * (1 + variation));
+      }
+    });
+    
+    return mandiPrices;
+  };
+
+  // Get base price for different crops
+  const getBasePrice = (crop: string) => {
+    const basePrices = {
+      'Potato': 1500,
+      'Tomato': 2000,
+      'Onion': 1800,
+      'Rice': 2500,
+      'Wheat': 2200,
+      'Maize': 1800,
+      'Cotton': 6000,
+      'Sugarcane': 350
+    };
+    return basePrices[crop as keyof typeof basePrices] || 1500;
   };
 
   // Generate market recommendation
@@ -177,46 +193,24 @@ const MarketPage: React.FC = () => {
 
   // Generate realistic fallback market data
   const generateFallbackMarketData = (crop: string, state: string) => {
-    const basePrices = {
-      'Potato': 1500,
-      'Tomato': 2000,
-      'Onion': 1800,
-      'Rice': 2500,
-      'Wheat': 2200,
-      'Maize': 1800,
-      'Cotton': 6000,
-      'Sugarcane': 350
-    };
-    
-    const basePrice = basePrices[crop as keyof typeof basePrices] || 1500;
+    const basePrice = getBasePrice(crop);
     const variation = (Math.random() - 0.5) * 0.2; // ±10% variation
     const currentPrice = Math.round(basePrice * (1 + variation));
     const previousPrice = Math.round(basePrice * (1 + variation * 0.8));
-    const percentageChange = previousPrice ? ((currentPrice - previousPrice) / previousPrice * 100) : 0;
     
     return {
       currentPrice: currentPrice,
       previousPrice: previousPrice,
-      percentageChange: Math.round(percentageChange * 10) / 10,
       lastUpdated: new Date().toISOString(),
       recommendation: generateRecommendation(crop, state),
       mandiPrices: generateMandiPrices(crop, state),
       bestTimeToSell: 'Morning hours (6-10 AM)',
-      transportOptions: 'Truck, Tractor trolley'
+      transportOptions: 'Truck, Tractor trolley',
+      source: 'Enhanced Fallback Data'
     };
   };
 
-  const getPriceChangeColor = (change: number) => {
-    if (change > 0) return 'text-green-600';
-    if (change < 0) return 'text-red-600';
-    return 'text-gray-600';
-  };
 
-  const getPriceChangeIcon = (change: number) => {
-    if (change > 0) return '↗';
-    if (change < 0) return '↘';
-    return '→';
-  };
 
   return (
     <div className="flex-1 overflow-auto p-6">
@@ -224,7 +218,7 @@ const MarketPage: React.FC = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Market Intelligence</h1>
           <p className="text-gray-600">
-            Real-time mandi prices, market trends, and selling recommendations
+            Real-time mandi prices and selling recommendations
           </p>
         </div>
 
@@ -311,11 +305,10 @@ const MarketPage: React.FC = () => {
           </div>
         </div>
 
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
+        {/* Status Display */}
+
+
+
 
         {loading ? (
           <div className="text-center py-12">
@@ -324,15 +317,40 @@ const MarketPage: React.FC = () => {
           </div>
         ) : (
           <>
-            {/* Analytics Dashboard with Props */}
-            <div className="mb-8">
-              <AnalyticsDashboard 
-                initialCommodity={selectedCrop}
-                initialState={selectedState}
-                initialMarket={selectedMarket}
-                initialYear={selectedYear}
-              />
-            </div>
+                                              {/* Analytics Dashboard with Props */}
+                   <div className="mb-8">
+                     <AnalyticsDashboard
+                       initialCommodity={selectedCrop}
+                       initialState={selectedState}
+                       initialYear={selectedYear}
+                     />
+                   </div>
+
+                   {/* Advanced Analytics Section */}
+                   <div className="mb-8">
+                     <div className="mb-6">
+                       <h2 className="text-2xl font-bold text-gray-900 mb-2">🔮 Advanced Market Intelligence</h2>
+                       <p className="text-gray-600">
+                         AI-powered price predictions, seasonal trends, and market insights
+                       </p>
+                     </div>
+                     
+                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                       <PricePredictionChart
+                         commodity={selectedCrop}
+                         state={selectedState}
+                         market={selectedMarket}
+                         days={30}
+                         height={400}
+                       />
+                       <SeasonalTrendsChart
+                         commodity={selectedCrop}
+                         state={selectedState}
+                         market={selectedMarket}
+                         height={400}
+                       />
+                     </div>
+                   </div>
 
             {/* Current Price Card */}
             {marketData && (
@@ -346,7 +364,7 @@ const MarketPage: React.FC = () => {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="text-center">
                     <div className="text-3xl font-bold text-gray-900 mb-2">
                       ₹{marketData.currentPrice}/kg
@@ -354,12 +372,7 @@ const MarketPage: React.FC = () => {
                     <div className="text-sm text-gray-600">Current Price</div>
                   </div>
 
-                  <div className="text-center">
-                    <div className={`text-2xl font-bold mb-2 ${getPriceChangeColor(marketData.percentageChange)}`}>
-                      {getPriceChangeIcon(marketData.percentageChange)} {Math.abs(marketData.percentageChange)}%
-                    </div>
-                    <div className="text-sm text-gray-600">Price Change</div>
-                  </div>
+
 
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900 mb-2">
@@ -393,30 +406,7 @@ const MarketPage: React.FC = () => {
               </div>
             )}
 
-            {/* Market Trends */}
-            {trends && (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Price Trends (Last 7 Days)</h2>
-                <div className="space-y-4">
-                  {trends.dailyPrices?.map((day: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div>
-                        <span className="font-medium text-gray-900">{day.date}</span>
-                        <span className="text-sm text-gray-500 ml-2">{day.day}</span>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="font-bold text-gray-900">₹{day.price}/kg</span>
-                        {day.change !== 0 && (
-                          <span className={`text-sm ${getPriceChangeColor(day.change)}`}>
-                            {getPriceChangeIcon(day.change)} {Math.abs(day.change)}%
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Market Analysis */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

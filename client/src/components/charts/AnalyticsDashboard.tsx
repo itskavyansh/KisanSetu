@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import MarketPriceChart from './MarketPriceChart';
 import CropProductionChart from './CropProductionChart';
 import WeatherImpactChart from './WeatherImpactChart';
 
@@ -7,31 +6,27 @@ interface AnalyticsDashboardProps {
   className?: string;
   initialCommodity?: string;
   initialState?: string;
-  initialMarket?: string;
   initialYear?: number;
 }
 
-const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({ 
+const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
   initialCommodity = 'Potato',
   initialState = 'Karnataka',
-  initialMarket = 'Bangalore',
   initialYear = new Date().getFullYear()
 }) => {
   const [selectedCommodity, setSelectedCommodity] = useState(initialCommodity);
   const [selectedState, setSelectedState] = useState(initialState);
-  const [selectedMarket, setSelectedMarket] = useState(initialMarket);
-  const [selectedLocation, setSelectedLocation] = useState(initialMarket);
+  const [selectedLocation, setSelectedLocation] = useState(initialState);
   const [selectedYear, setSelectedYear] = useState(initialYear);
 
   // Update local state when props change
   useEffect(() => {
     setSelectedCommodity(initialCommodity);
     setSelectedState(initialState);
-    setSelectedMarket(initialMarket);
-    setSelectedLocation(initialMarket);
+    setSelectedLocation(initialState);
     setSelectedYear(initialYear);
-  }, [initialCommodity, initialState, initialMarket, initialYear]);
+  }, [initialCommodity, initialState, initialYear]);
 
 
 
@@ -55,16 +50,6 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Market Price Chart */}
-        <div className="lg:col-span-2">
-          <MarketPriceChart
-            commodity={selectedCommodity}
-            state={selectedState}
-            market={selectedMarket}
-            height={400}
-          />
-        </div>
-
         {/* Weather Impact Chart */}
         <div>
           <WeatherImpactChart
@@ -87,18 +72,7 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <span className="text-green-600 text-xl">📈</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-600">Market Trend</p>
-              <p className="text-lg font-semibold text-gray-800">Rising</p>
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
         <div className="bg-white p-6 rounded-lg shadow-md">
           <div className="flex items-center">
@@ -124,40 +98,13 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <div className="flex items-center">
-            <div className="p-2 bg-yellow-100 rounded-lg">
-              <span className="text-yellow-600 text-xl">💰</span>
-            </div>
-            <div className="ml-4">
-              <p className="text-sm text-gray-600">Price Range</p>
-              <p className="text-lg font-semibold text-gray-800">₹1500-1800</p>
-            </div>
-          </div>
-        </div>
+
       </div>
 
       {/* Insights Panel */}
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Key Insights</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold text-gray-700 mb-2">Market Analysis</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2">✓</span>
-                {selectedCommodity} prices are showing an upward trend
-              </li>
-              <li className="flex items-start">
-                <span className="text-green-500 mr-2">✓</span>
-                Market volatility is within normal range
-              </li>
-              <li className="flex items-start">
-                <span className="text-yellow-500 mr-2">⚠</span>
-                Consider selling when prices peak in next 2 weeks
-              </li>
-            </ul>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
           <div>
             <h3 className="font-semibold text-gray-700 mb-2">Weather Advisory</h3>
             <ul className="space-y-2 text-sm text-gray-600">

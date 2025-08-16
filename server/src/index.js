@@ -16,6 +16,8 @@ const governmentSchemesRoutes = require('./routes/governmentSchemes');
 const carbonCreditsRoutes = require('./routes/carbonCredits');
 const voiceInterfaceRoutes = require('./routes/voiceInterface');
 const agmarknetRoutes = require('./routes/agmarknet');
+const analyticsRoutes = require('./routes/analytics');
+const agmarknetService = require('./services/agmarknetService');
 
 const app = express();
 
@@ -32,6 +34,7 @@ app.use('/api/schemes', governmentSchemesRoutes);
 app.use('/api/carbon-credits', carbonCreditsRoutes);
 app.use('/api/voice', voiceInterfaceRoutes);
 app.use('/api/agmarknet', agmarknetRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -39,7 +42,7 @@ app.get('/health', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`🚀 KisanSetu Server running on port ${PORT}`);
     console.log(`🌱 Crop Health API: http://localhost:${PORT}/api/crop-health`);
     console.log(`📊 Market Intelligence API: http://localhost:${PORT}/api/market`);
@@ -47,4 +50,24 @@ app.listen(PORT, () => {
     console.log(`🌳 Carbon Credits API: http://localhost:${PORT}/api/carbon-credits`);
     console.log(`🎤 Voice Interface API: http://localhost:${PORT}/api/voice`);
     console.log(`📈 Agmarknet API: http://localhost:${PORT}/api/agmarknet`);
+    console.log(`🔮 Advanced Analytics API: http://localhost:${PORT}/api/analytics`);
+});
+
+// Graceful shutdown handling
+process.on('SIGINT', async () => {
+    console.log('\n🛑 Received SIGINT, shutting down gracefully...');
+    await agmarknetService.cleanup();
+    server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+    });
+});
+
+process.on('SIGTERM', async () => {
+    console.log('\n🛑 Received SIGTERM, shutting down gracefully...');
+    await agmarknetService.cleanup();
+    server.close(() => {
+        console.log('✅ Server closed');
+        process.exit(0);
+    });
 });

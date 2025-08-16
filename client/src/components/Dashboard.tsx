@@ -178,7 +178,7 @@ const Dashboard: React.FC = () => {
               <div>
                 <h3 className="font-semibold text-green-800">Today's Price</h3>
                 <p className="text-sm text-green-600">
-                  {marketData ? `₹${marketData.currentPrice}/kg (↑${marketData.percentageChange}%)` : 'Loading...'}
+                  {marketData ? `₹${marketData.currentPrice}/kg` : 'Loading...'}
                 </p>
               </div>
             </div>
@@ -234,7 +234,7 @@ const Dashboard: React.FC = () => {
                   <div>
                       <div className="text-3xl font-bold text-gray-900">₹{marketData.currentPrice}/kg</div>
                     <div className="flex items-center text-sm text-green-600">
-                        <span className="mr-1">↑{marketData.percentageChange}% from yesterday</span>
+                        <span className="mr-1">Market data available</span>
                     </div>
                   </div>
                 </div>
