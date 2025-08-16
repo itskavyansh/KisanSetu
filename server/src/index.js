@@ -10,12 +10,12 @@ console.log('Environment check:', {
 });
 
 const authRoutes = require('./routes/auth');
-const loginRoutes = require('./routes/login');
 const cropHealthRoutes = require('./routes/cropHealth');
 const marketIntelligenceRoutes = require('./routes/marketIntelligence');
 const governmentSchemesRoutes = require('./routes/governmentSchemes');
 const carbonCreditsRoutes = require('./routes/carbonCredits');
 const voiceInterfaceRoutes = require('./routes/voiceInterface');
+const agmarknetRoutes = require('./routes/agmarknet');
 
 const app = express();
 
@@ -26,13 +26,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Routes
 app.use('/auth', authRoutes);
-app.use('/login-signup', loginRoutes);
-app.use('/', loginRoutes);
 app.use('/api/crop-health', cropHealthRoutes);
 app.use('/api/market', marketIntelligenceRoutes);
 app.use('/api/schemes', governmentSchemesRoutes);
 app.use('/api/carbon-credits', carbonCreditsRoutes);
 app.use('/api/voice', voiceInterfaceRoutes);
+app.use('/api/agmarknet', agmarknetRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -47,4 +46,5 @@ app.listen(PORT, () => {
     console.log(`🏛️ Government Schemes API: http://localhost:${PORT}/api/schemes`);
     console.log(`🌳 Carbon Credits API: http://localhost:${PORT}/api/carbon-credits`);
     console.log(`🎤 Voice Interface API: http://localhost:${PORT}/api/voice`);
+    console.log(`📈 Agmarknet API: http://localhost:${PORT}/api/agmarknet`);
 });

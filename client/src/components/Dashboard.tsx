@@ -227,41 +227,41 @@ const Dashboard: React.FC = () => {
           
           <div className="p-6">
             {marketData ? (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div>
-                  <div className="flex items-center mb-4">
-                    <CurrencyDollarIcon className="w-12 h-12 text-kisan-green mr-4" />
-                    <div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <div className="flex items-center mb-4">
+                  <CurrencyDollarIcon className="w-12 h-12 text-kisan-green mr-4" />
+                  <div>
                       <div className="text-3xl font-bold text-gray-900">₹{marketData.currentPrice}/kg</div>
-                      <div className="flex items-center text-sm text-green-600">
+                    <div className="flex items-center text-sm text-green-600">
                         <span className="mr-1">↑{marketData.percentageChange}% from yesterday</span>
-                      </div>
                     </div>
-                  </div>
-                  
-                  <p className="text-gray-700 mb-4">{marketData.recommendation}</p>
-                  
-                  <div className="bg-kisan-light-blue border border-blue-200 rounded-lg p-4">
-                    <p className="text-sm text-blue-800">
-                      <strong>Recommendation:</strong> {marketData.recommendation}
-                    </p>
                   </div>
                 </div>
                 
-                <div className="flex flex-col justify-end space-y-3">
+                  <p className="text-gray-700 mb-4">{marketData.recommendation}</p>
+                
+                <div className="bg-kisan-light-blue border border-blue-200 rounded-lg p-4">
+                  <p className="text-sm text-blue-800">
+                      <strong>Recommendation:</strong> {marketData.recommendation}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex flex-col justify-end space-y-3">
                   <button 
                     onClick={() => navigate('/market')}
                     className="flex items-center text-kisan-green hover:text-green-600 font-medium"
                   >
-                    <ChartBarIcon className="w-5 h-5 mr-2" />
-                    View Price Trends
+                  <ChartBarIcon className="w-5 h-5 mr-2" />
+                  View Price Trends
                   </button>
                   <button 
                     onClick={() => navigate('/market')}
                     className="flex items-center text-kisan-green hover:text-green-600 font-medium"
                   >
-                    <TruckIcon className="w-5 h-5 mr-2" />
-                    Transport Options
+                  <TruckIcon className="w-5 h-5 mr-2" />
+                  Transport Options
                   </button>
                 </div>
               </div>
@@ -307,8 +307,8 @@ const Dashboard: React.FC = () => {
                       >
                         Learn More
                       </button>
-                    </div>
-                  </div>
+              </div>
+            </div>
                 ))}
               </div>
             ) : (
@@ -360,18 +360,18 @@ const Dashboard: React.FC = () => {
               className="bg-kisan-green text-white px-6 py-3 rounded-lg font-medium hover:bg-green-600 transition-colors"
             >
               Join Program
-            </button>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Floating Microphone Icon */}
-        <div className="fixed bottom-6 right-6">
+          {/* Floating Microphone Icon */}
+          <div className="fixed bottom-6 right-6">
           <button 
             onClick={() => setVoiceQuery('')}
             className="w-14 h-14 bg-kisan-green hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-colors duration-200"
           >
-            <MicrophoneIcon className="w-6 h-6 text-white" />
-          </button>
+              <MicrophoneIcon className="w-6 h-6 text-white" />
+            </button>
         </div>
       </div>
     </div>
