@@ -15,10 +15,12 @@ import {
   UserCircleIcon
 } from '@heroicons/react/24/outline';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const { currentUser, logout } = useAuth();
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -31,7 +33,7 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="w-64 bg-white shadow-lg">
+    <div className="w-64 bg-white shadow-lg flex flex-col h-screen sticky top-0 overflow-y-auto no-scrollbar">
       {/* Header */}
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
@@ -43,32 +45,34 @@ const Sidebar: React.FC = () => {
         </div>
       </div>
 
+      
+
       {/* Navigation Menu */}
       <nav className="p-4">
         <div className="space-y-2">
-          <NavLink to="/dashboard" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <CheckIcon className="w-5 h-5 mr-3" />
-            Dashboard
+          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <CheckIcon className="w-5 h-5" />
+            <span>Dashboard</span>
           </NavLink>
-          <NavLink to="/scan-crop" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <SparklesIcon className="w-5 h-5 mr-3" />
-            Crop Health
+          <NavLink to="/scan-crop" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <SparklesIcon className="w-5 h-5" />
+            <span>Crop Health</span>
           </NavLink>
-          <NavLink to="/market" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <CurrencyDollarIcon className="w-5 h-5 mr-3" />
-            Market Prices
+          <NavLink to="/market" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <CurrencyDollarIcon className="w-5 h-5" />
+            <span>Market Prices</span>
           </NavLink>
-          <NavLink to="/carbon-credits" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <GlobeAltIcon className="w-5 h-5 mr-3" />
-            Carbon Credits
+          <NavLink to="/carbon-credits" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <GlobeAltIcon className="w-5 h-5" />
+            <span>Carbon Credits</span>
           </NavLink>
-          <NavLink to="/schemes" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <DocumentTextIcon className="w-5 h-5 mr-3" />
-            Govt. Schemes
+          <NavLink to="/schemes" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <DocumentTextIcon className="w-5 h-5" />
+            <span>Govt. Schemes</span>
           </NavLink>
-          <NavLink to="/weather" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <CloudIcon className="w-5 h-5 mr-3" />
-            Weather
+          <NavLink to="/weather" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <CloudIcon className="w-5 h-5" />
+            <span>Weather</span>
           </NavLink>
         </div>
       </nav>
@@ -77,44 +81,60 @@ const Sidebar: React.FC = () => {
       <div className="p-4 border-t border-gray-200">
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">TOOLS</h3>
         <div className="space-y-2">
-          <NavLink to="/scan-crop" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <CameraIcon className="w-5 h-5 mr-3" />
-            Scan Crop
+          <NavLink to="/scan-crop" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <CameraIcon className="w-5 h-5" />
+            <span>Scan Crop</span>
           </NavLink>
-          <NavLink to="/voice-assistant" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <MicrophoneIcon className="w-5 h-5 mr-3" />
-            Voice Assistant
+          <NavLink to="/profit-calculator" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <CalculatorIcon className="w-5 h-5" />
+            <span>Profit Calculator</span>
           </NavLink>
-          <NavLink to="/profit-calculator" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <CalculatorIcon className="w-5 h-5 mr-3" />
-            Profit Calculator
-          </NavLink>
-          <NavLink to="/crop-calendar" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <CalendarIcon className="w-5 h-5 mr-3" />
-            Crop Calendar
+          <NavLink to="/crop-calendar" className={({ isActive }) => (isActive ? 'text-kisan-green' : 'text-gray-700') + ' flex items-center gap-3'}>
+            <CalendarIcon className="w-5 h-5" />
+            <span>Crop Calendar</span>
           </NavLink>
         </div>
       </div>
 
       {/* Language Section */}
       <div className="p-4 border-t border-gray-200">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">LANGUAGE</h3>
-        <div className="space-y-2">
-          <NavLink to="/kannada" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            <CheckIcon className="w-5 h-5 mr-3" />
-            Kannada
-          </NavLink>
-          <NavLink to="/english" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            English
-          </NavLink>
-          <NavLink to="/hindi" className={({ isActive }) => isActive ? 'text-kisan-green' : 'text-gray-700'}>
-            Hindi
-          </NavLink>
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">LANGUAGES</h3>
+        <div className="space-y-1">
+          <button
+            onClick={() => { i18n.changeLanguage('kn'); localStorage.setItem('language', 'kn'); }}
+            className={`block w-full text-left ${i18n.language === 'kn' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+          >
+            {i18n.language === 'kn' ? '✓ ' : ''}ಕನ್ನಡ
+          </button>
+          <button
+            onClick={() => { i18n.changeLanguage('en'); localStorage.setItem('language', 'en'); }}
+            className={`block w-full text-left ${i18n.language === 'en' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+          >
+            {i18n.language === 'en' ? '✓ ' : ''}English
+          </button>
+          <button
+            onClick={() => { i18n.changeLanguage('hi'); localStorage.setItem('language', 'hi'); }}
+            className={`block w-full text-left ${i18n.language === 'hi' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+          >
+            {i18n.language === 'hi' ? '✓ ' : ''}हिन्दी
+          </button>
+          <button
+            onClick={() => { i18n.changeLanguage('ta'); localStorage.setItem('language', 'ta'); }}
+            className={`block w-full text-left ${i18n.language === 'ta' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+          >
+            {i18n.language === 'ta' ? '✓ ' : ''}தமிழ்
+          </button>
+          <button
+            onClick={() => { i18n.changeLanguage('te'); localStorage.setItem('language', 'te'); }}
+            className={`block w-full text-left ${i18n.language === 'te' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+          >
+            {i18n.language === 'te' ? '✓ ' : ''}తెలుగు
+          </button>
         </div>
       </div>
 
-      {/* User Profile */}
-      <div className="p-4 border-t border-gray-200 mt-auto">
+      {/* User Profile (moved below languages) */}
+      <div className="p-4 border-t border-gray-200">
         <div className="flex items-center">
           <UserCircleIcon className="w-10 h-10 text-gray-400 mr-3" />
           <div>
@@ -124,15 +144,22 @@ const Sidebar: React.FC = () => {
             <p className="text-xs text-gray-500">Farmer, Karnataka</p>
           </div>
         </div>
+      </div>
+
+      {/* Sign Out (placed after Languages) */}
+      <div className="p-4 border-t border-gray-200">
         <button
           onClick={handleLogout}
-          className="mt-2 w-full text-left text-sm text-red-600 hover:text-red-800"
+          className="w-full text-left text-sm text-red-600 hover:text-red-800"
         >
           Sign out
         </button>
       </div>
+
+      {/* Make inner content scrollable while header stays */}
+      
     </div>
   );
 };
 
-export default Sidebar; 
+export default Sidebar;

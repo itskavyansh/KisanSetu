@@ -14,10 +14,10 @@ const SchemeDetailPage: React.FC = () => {
     })();
   }, [schemeId]);
 
-  if (!data) return <div className="p-6">Loading...</div>;
+  if (!data) return <div className="flex-1 overflow-auto relative min-h-screen p-6">Loading...</div>;
 
   return (
-    <div className="p-6 space-y-4">
+    <div className="flex-1 overflow-auto relative min-h-screen p-6 space-y-4">
       <h1 className="text-2xl font-bold">{data.name}</h1>
       <p className="text-gray-700">{data.description}</p>
       <div>

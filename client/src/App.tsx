@@ -12,6 +12,9 @@ import CropScanPage from './pages/CropScanPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import './App.css';
+import ProfitCalculator from './pages/ProfitCalculator';
+import CropCalendar from './pages/CropCalender';
+import WeatherPage from './pages/WeatherPage';
 
 function App() {
   return (
@@ -25,7 +28,7 @@ function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <div className="flex h-screen bg-gray-50">
+            <div className="flex min-h-screen bg-gray-50">
               <Sidebar />
               <Dashboard />
             </div>
@@ -33,7 +36,7 @@ function App() {
         } />
         <Route path="/market" element={
           <ProtectedRoute>
-            <div className="flex h-screen bg-gray-50">
+            <div className="flex min-h-screen bg-gray-50">
               <Sidebar />
               <MarketPage />
             </div>
@@ -41,7 +44,7 @@ function App() {
         } />
         <Route path="/schemes" element={
           <ProtectedRoute>
-            <div className="flex h-screen bg-gray-50">
+            <div className="flex min-h-screen bg-gray-50">
               <Sidebar />
               <SchemesPage />
             </div>
@@ -49,7 +52,7 @@ function App() {
         } />
         <Route path="/schemes/:schemeId" element={
           <ProtectedRoute>
-            <div className="flex h-screen bg-gray-50">
+            <div className="flex min-h-screen bg-gray-50">
               <Sidebar />
               <SchemeDetailPage />
             </div>
@@ -57,7 +60,7 @@ function App() {
         } />
         <Route path="/carbon-credits" element={
           <ProtectedRoute>
-            <div className="flex h-screen bg-gray-50">
+            <div className="flex min-h-screen bg-gray-50">
               <Sidebar />
               <CarbonCreditsPage />
             </div>
@@ -65,12 +68,38 @@ function App() {
         } />
         <Route path="/scan-crop" element={
           <ProtectedRoute>
-            <div className="flex h-screen bg-gray-50">
+            <div className="flex min-h-screen bg-gray-50">
               <Sidebar />
               <CropScanPage />
             </div>
           </ProtectedRoute>
         } />
+        <Route path="/profit-calculator" element={
+          <ProtectedRoute>
+            <div className="flex min-h-screen bg-gray-50">
+              <Sidebar />
+              <ProfitCalculator />
+            </div>
+          </ProtectedRoute>
+        } />
+        <Route path="/crop-calendar" element={
+          <ProtectedRoute>
+            <div className="flex min-h-screen bg-gray-50">
+              <Sidebar />
+              <CropCalendar />
+            </div>
+          </ProtectedRoute>
+        } />
+
+        <Route path="/weather" element={
+          <ProtectedRoute>
+            <div className="flex min-h-screen bg-gray-50">
+              <Sidebar />
+              <WeatherPage />
+            </div>
+          </ProtectedRoute>
+        } />
+
         
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

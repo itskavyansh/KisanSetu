@@ -15,7 +15,7 @@ const SchemesPage: React.FC = () => {
   useEffect(() => { load(); }, []);
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex-1 overflow-auto relative min-h-screen p-6 space-y-6">
       <h1 className="text-2xl font-bold">Government Schemes</h1>
       <div className="flex gap-2">
         <input
