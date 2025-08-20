@@ -2,25 +2,23 @@ import React from 'react';
 import {
   CheckIcon,
   ChevronDownIcon,
-  HomeIcon,
   SparklesIcon,
   CurrencyDollarIcon,
   GlobeAltIcon,
   DocumentTextIcon,
   CloudIcon,
   CameraIcon,
-  MicrophoneIcon,
   CalculatorIcon,
   CalendarIcon,
   UserCircleIcon
 } from '@heroicons/react/24/outline';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const { currentUser, logout } = useAuth();
-  const { i18n } = useTranslation();
+  // Temporary: language switching disabled until i18n is configured
+  const i18n = { language: localStorage.getItem('language') || 'en', changeLanguage: (lng: string) => { localStorage.setItem('language', lng); window.location.reload(); } } as const;
   const navigate = useNavigate();
 
   const handleLogout = async () => {

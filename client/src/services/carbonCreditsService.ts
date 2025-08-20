@@ -64,4 +64,10 @@ export const carbonCreditsAPI = {
     });
     return response.data;
   },
+
+  // Get verification status
+  getVerificationStatus: async (projectId: string) => {
+    const response = await apiClient.get(`/carbon-credits/verification-status/${projectId}`);
+    return response.data;
+  },
 };
