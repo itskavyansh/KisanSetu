@@ -1,6 +1,8 @@
+const axios = require('axios');
+
 class CarbonCreditService {
   constructor() {
-    // Mock carbon credit rates and calculations
+    // Simplified carbon credit rates and calculations (domain model can be refined later)
     this.carbonRates = {
       'tree_planting': {
         teak: 0.8,      // kg CO2 per tree per year
@@ -21,11 +23,12 @@ class CarbonCreditService {
       }
     };
     
-    // Mock carbon credit market prices (₹ per kg CO2)
+    // Live-updated carbon credit market price snapshot (₹ per tonne CO2)
     this.marketPrices = {
-      current: 900,      // ₹900 per tonne CO2
-      historical: [850, 880, 920, 900, 950, 900],
-      trend: 'stable'
+      current: 900,
+      historical: [],
+      trend: 'stable',
+      source: 'coingecko'
     };
   }
 
@@ -191,14 +194,55 @@ class CarbonCreditService {
 
   async getCarbonMarketInfo() {
     try {
+      // Prefer MCO2 (Moss Carbon Credit), fallback to BCT/NCT. Each token ~ 1 tonne CO2e.
+      const ids = [
+        'moss-carbon-credit',
+        'toucan-protocol-base-carbon-tonne',
+        'toucan-protocol-nature-carbon-tonne'
+      ];
+      const vs = 'inr';
+
+      const simpleUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${ids.join(',')}&vs_currencies=${vs}`;
+      const simple = await axios.get(simpleUrl, { timeout: 8000 });
+
+      // Pick first available id with a valid price
+      let chosenId = ids.find(id => simple.data && simple.data[id] && simple.data[id][vs] != null);
+      if (!chosenId) {
+        throw new Error('No live price available from CoinGecko');
+      }
+      const currentPrice = Number(simple.data[chosenId][vs]);
+
+      // Fetch 30-day history to determine trend
+      const histUrl = `https://api.coingecko.com/api/v3/coins/${chosenId}/market_chart?vs_currency=${vs}&days=30&interval=daily`;
+      const hist = await axios.get(histUrl, { timeout: 10000 });
+      const priceHistory = Array.isArray(hist.data?.prices)
+        ? hist.data.prices.map(p => Number(p[1])).filter(n => Number.isFinite(n))
+        : [];
+
+      // Compute simple trend
+      let trend = 'stable';
+      if (priceHistory.length >= 2) {
+        const first = priceHistory[0];
+        const last = priceHistory[priceHistory.length - 1];
+        const delta = (last - first) / (first || 1);
+        if (delta > 0.03) trend = 'rising';
+        else if (delta < -0.03) trend = 'falling';
+        else trend = 'stable';
+      }
+
+      // Update in-memory snapshot used for earnings calculations
+      this.marketPrices.current = currentPrice; // ₹ per tonne
+      this.marketPrices.historical = priceHistory;
+      this.marketPrices.trend = trend;
+      this.marketPrices.source = `coingecko:${chosenId}`;
+
       return {
         success: true,
         data: {
-          currentPrice: this.marketPrices.current,
-          priceHistory: this.marketPrices.historical,
-          trend: this.marketPrices.trend,
-          marketCap: '₹2.5 billion',
-          tradingVolume: '₹150 million daily',
+          currentPrice: currentPrice,
+          priceHistory: priceHistory,
+          trend: trend,
+          source: this.marketPrices.source,
           lastUpdated: new Date().toISOString()
         }
       };

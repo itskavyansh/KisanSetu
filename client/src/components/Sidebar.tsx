@@ -2,14 +2,12 @@ import React from 'react';
 import {
   CheckIcon,
   ChevronDownIcon,
-  HomeIcon,
   SparklesIcon,
   CurrencyDollarIcon,
   GlobeAltIcon,
   DocumentTextIcon,
   CloudIcon,
   CameraIcon,
-  MicrophoneIcon,
   CalculatorIcon,
   CalendarIcon,
   UserCircleIcon
@@ -19,6 +17,8 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Sidebar: React.FC = () => {
   const { currentUser, logout } = useAuth();
+  // Temporary: language switching disabled until i18n is configured
+  const i18n = { language: localStorage.getItem('language') || 'en', changeLanguage: (lng: string) => { localStorage.setItem('language', lng); window.location.reload(); } } as const;
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -29,13 +29,6 @@ const Sidebar: React.FC = () => {
       console.error('Failed to log out:', error);
     }
   };
-
-  const changeLanguage = (lang: string) => {
-    localStorage.setItem('language', lang);
-    window.location.reload(); // Simple language change
-  };
-
-  const currentLanguage = localStorage.getItem('language') || 'en';
 
   return (
     <div className="w-64 bg-white shadow-lg flex flex-col h-screen sticky top-0 overflow-y-auto no-scrollbar">
@@ -49,6 +42,8 @@ const Sidebar: React.FC = () => {
           <ChevronDownIcon className="w-5 h-5 text-gray-400" />
         </div>
       </div>
+
+      
 
       {/* Navigation Menu */}
       <nav className="p-4">
@@ -104,34 +99,34 @@ const Sidebar: React.FC = () => {
         <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">LANGUAGES</h3>
         <div className="space-y-1">
           <button
-            onClick={() => changeLanguage('kn')}
-            className={`block w-full text-left ${currentLanguage === 'kn' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+            onClick={() => { i18n.changeLanguage('kn'); localStorage.setItem('language', 'kn'); }}
+            className={`block w-full text-left ${i18n.language === 'kn' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
           >
-            {currentLanguage === 'kn' ? '✓ ' : ''}ಕನ್ನಡ
+            {i18n.language === 'kn' ? '✓ ' : ''}ಕನ್ನಡ
           </button>
           <button
-            onClick={() => changeLanguage('en')}
-            className={`block w-full text-left ${currentLanguage === 'en' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+            onClick={() => { i18n.changeLanguage('en'); localStorage.setItem('language', 'en'); }}
+            className={`block w-full text-left ${i18n.language === 'en' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
           >
-            {currentLanguage === 'en' ? '✓ ' : ''}English
+            {i18n.language === 'en' ? '✓ ' : ''}English
           </button>
           <button
-            onClick={() => changeLanguage('hi')}
-            className={`block w-full text-left ${currentLanguage === 'hi' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+            onClick={() => { i18n.changeLanguage('hi'); localStorage.setItem('language', 'hi'); }}
+            className={`block w-full text-left ${i18n.language === 'hi' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
           >
-            {currentLanguage === 'hi' ? '✓ ' : ''}हिन्दी
+            {i18n.language === 'hi' ? '✓ ' : ''}हिन्दी
           </button>
           <button
-            onClick={() => changeLanguage('ta')}
-            className={`block w-full text-left ${currentLanguage === 'ta' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+            onClick={() => { i18n.changeLanguage('ta'); localStorage.setItem('language', 'ta'); }}
+            className={`block w-full text-left ${i18n.language === 'ta' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
           >
-            {currentLanguage === 'ta' ? '✓ ' : ''}தமிழ்
+            {i18n.language === 'ta' ? '✓ ' : ''}தமிழ்
           </button>
           <button
-            onClick={() => changeLanguage('te')}
-            className={`block w-full text-left ${currentLanguage === 'te' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
+            onClick={() => { i18n.changeLanguage('te'); localStorage.setItem('language', 'te'); }}
+            className={`block w-full text-left ${i18n.language === 'te' ? 'text-kisan-green font-medium' : 'text-gray-700'}`}
           >
-            {currentLanguage === 'te' ? '✓ ' : ''}తెలుగు
+            {i18n.language === 'te' ? '✓ ' : ''}తెలుగు
           </button>
         </div>
       </div>
@@ -158,6 +153,9 @@ const Sidebar: React.FC = () => {
           Sign out
         </button>
       </div>
+
+      {/* Make inner content scrollable while header stays */}
+      
     </div>
   );
 };
