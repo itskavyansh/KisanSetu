@@ -58,6 +58,20 @@ module.exports = {
       baseUrl: 'https://pmkisan.gov.in/api', // Example endpoint
       apiKey: process.env.PMKISAN_API_KEY || 'your_pmkisan_api_key'
     },
+    // National scheme discovery providers
+    schemes: {
+      myScheme: {
+        // API Setu - myScheme aggregator (configure if available)
+        baseUrl: process.env.MYSCHEME_BASE_URL || 'https://apisetu.gov.in/myscheme',
+        apiKey: process.env.MYSCHEME_API_KEY || '' // X-APISETU-KEY header
+      },
+      dataGovIn: {
+        // Open Government Data (dataset-driven)
+        baseUrl: process.env.DATA_GOV_IN_BASE_URL || 'https://api.data.gov.in/resource',
+        apiKey: process.env.DATA_GOV_IN_API_KEY || '',
+        resourceId: process.env.DATA_GOV_IN_SCHEMES_RESOURCE_ID || ''
+      }
+    },
     stateSchemes: {
       karnataka: {
         baseUrl: 'https://api.karnataka.gov.in/schemes',

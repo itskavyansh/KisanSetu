@@ -5,15 +5,20 @@ const router = express.Router();
 // GET /api/schemes/search
 router.get('/search', async (req, res) => {
   try {
-    const { q: query, category, status } = req.query;
+    console.log('🔍 Search request received:', req.query);
+    const { q: query, category, status, page } = req.query;
     const filters = { category, status };
+    const pageNum = parseInt(page) || 1;
     
-    const results = await governmentSchemesService.searchSchemes(query, filters);
+    const results = await governmentSchemesService.searchSchemes(query, filters, pageNum);
+    console.log(`✅ Search completed successfully. Found ${results.data.schemes.length} schemes on page ${pageNum}`);
     res.json(results);
   } catch (error) {
+    console.error('❌ Search error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
+      timestamp: new Date().toISOString()
     });
   }
 });
@@ -65,11 +70,8 @@ router.get('/:schemeId/application-guide', async (req, res) => {
 // GET /api/schemes/categories
 router.get('/categories', async (req, res) => {
   try {
-    const categories = ['Irrigation', 'Soil Management', 'Equipment', 'Seeds', 'Insurance'];
-    res.json({
-      success: true,
-      data: categories
-    });
+    const result = await governmentSchemesService.getCategories();
+    res.json(result);
   } catch (error) {
     res.status(500).json({
       success: false,
