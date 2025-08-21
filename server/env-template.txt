@@ -3,10 +3,6 @@ PORT=5000
 NODE_ENV=development
 GOOGLE_CLOUD_PROJECT_ID=your_google_cloud_project_id
 
-# Agricultural Market APIs
-FAO_API_KEY=your_fao_api_key_here
-ALTERNATIVE_API_KEY=your_alternative_market_api_key_here
-
 # AI and Image Analysis APIs
 PLANT_ID_API_KEY=your_plant_id_api_key_here
 GOOGLE_VISION_API_KEY=your_google_vision_api_key_here
@@ -14,6 +10,11 @@ GOOGLE_VISION_API_KEY=your_google_vision_api_key_here
 # Government and Scheme APIs
 PMKISAN_API_KEY=your_pmkisan_api_key_here
 KARNATAKA_API_KEY=your_karnataka_state_api_key_here
+MYSCHEME_API_KEY=your_apisetu_myscheme_api_key_here
+MYSCHEME_BASE_URL=https://apisetu.gov.in/myscheme
+DATA_GOV_IN_API_KEY=your_data_gov_in_api_key_here
+DATA_GOV_IN_BASE_URL=https://api.data.gov.in/resource
+DATA_GOV_IN_SCHEMES_RESOURCE_ID=
 
 # Carbon Credits and Sustainability APIs
 GOLDSTANDARD_API_KEY=your_goldstandard_api_key_here

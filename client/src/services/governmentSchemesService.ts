@@ -4,6 +4,7 @@ export interface SchemeSearchParams {
   q?: string;
   category?: string;
   status?: string;
+  page?: number;
 }
 
 export interface Scheme {
