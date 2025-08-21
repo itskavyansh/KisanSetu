@@ -88,22 +88,28 @@ const SeasonalTrendsChart: React.FC<SeasonalTrendsChartProps> = ({
   };
 
   const getPeakMonths = () => {
-    return seasonalData.filter(item => item.trend === 'Peak').map(item => item.monthName);
+    if (!seasonalData || seasonalData.length === 0) return [];
+    return seasonalData.filter(item => item && item.trend === 'Peak').map(item => item.monthName).filter(Boolean);
   };
 
   const getLowMonths = () => {
-    return seasonalData.filter(item => item.trend === 'Falling').slice(0, 2).map(item => item.monthName);
+    if (!seasonalData || seasonalData.length === 0) return [];
+    return seasonalData.filter(item => item && item.trend === 'Falling').slice(0, 2).map(item => item.monthName).filter(Boolean);
   };
 
   const getAveragePrice = () => {
-    if (seasonalData.length === 0) return 0;
-    const sum = seasonalData.reduce((acc, item) => acc + item.averagePrice, 0);
-    return Math.round(sum / seasonalData.length);
+    if (!seasonalData || seasonalData.length === 0) return 0;
+    const validData = seasonalData.filter(item => item && typeof item.averagePrice === 'number' && !isNaN(item.averagePrice));
+    if (validData.length === 0) return 0;
+    const sum = validData.reduce((acc, item) => acc + item.averagePrice, 0);
+    return Math.round(sum / validData.length);
   };
 
   const getPriceRange = () => {
-    if (seasonalData.length === 0) return { min: 0, max: 0 };
-    const prices = seasonalData.map(item => item.averagePrice);
+    if (!seasonalData || seasonalData.length === 0) return { min: 0, max: 0 };
+    const validData = seasonalData.filter(item => item && typeof item.averagePrice === 'number' && !isNaN(item.averagePrice));
+    if (validData.length === 0) return { min: 0, max: 0 };
+    const prices = validData.map(item => item.averagePrice);
     return {
       min: Math.min(...prices),
       max: Math.max(...prices)
@@ -150,123 +156,154 @@ const SeasonalTrendsChart: React.FC<SeasonalTrendsChartProps> = ({
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-800">Average Price</h4>
-          <p className="text-2xl font-bold text-blue-900">₹{getAveragePrice()}/kg</p>
+      {seasonalData && seasonalData.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-blue-800">Average Price</h4>
+            <p className="text-2xl font-bold text-blue-900">₹{getAveragePrice()}/kg</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-green-800">Peak Months</h4>
+            <p className="text-lg font-semibold text-green-900">
+              {getPeakMonths().join(', ') || 'None'}
+            </p>
+          </div>
+          <div className="bg-red-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-red-800">Low Months</h4>
+            <p className="text-lg font-semibold text-red-900">
+              {getLowMonths().join(', ') || 'None'}
+            </p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-purple-800">Price Range</h4>
+            <p className="text-lg font-semibold text-purple-900">
+              ₹{getPriceRange().min} - ₹{getPriceRange().max}
+            </p>
+          </div>
         </div>
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h4 className="text-sm font-medium text-green-800">Peak Months</h4>
-          <p className="text-lg font-semibold text-green-900">
-            {getPeakMonths().join(', ')}
-          </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-blue-800">Average Price</h4>
+            <p className="text-2xl font-bold text-blue-900">₹0/kg</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-green-800">Peak Months</h4>
+            <p className="text-lg font-semibold text-green-900">None</p>
+          </div>
+          <div className="bg-red-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-red-800">Low Months</h4>
+            <p className="text-lg font-semibold text-red-900">None</p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-purple-800">Price Range</h4>
+            <p className="text-lg font-semibold text-purple-900">₹0 - ₹0</p>
+          </div>
         </div>
-        <div className="bg-red-50 p-4 rounded-lg">
-          <h4 className="text-sm font-medium text-red-800">Low Months</h4>
-          <p className="text-lg font-semibold text-red-900">
-            {getLowMonths().join(', ')}
-          </p>
-        </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <h4 className="text-sm font-medium text-purple-800">Price Range</h4>
-          <p className="text-lg font-semibold text-purple-900">
-            ₹{getPriceRange().min} - ₹{getPriceRange().max}
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Chart */}
-      <div style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={seasonalData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="monthName" 
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              tickFormatter={(value: number) => `₹${value}`}
-              tick={{ fontSize: 12 }}
-            />
-            <Tooltip 
-              formatter={(value: any, name: string) => [
-                `₹${value}/kg`, 
-                name === 'averagePrice' ? 'Average Price' : 
-                name === 'minPrice' ? 'Min Price' : 
-                name === 'maxPrice' ? 'Max Price' : name
-              ]}
-            />
-            <Legend />
-            <Bar 
-              dataKey="averagePrice" 
-              fill="#10B981" 
-              name="Average Price"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar 
-              dataKey="minPrice" 
-              fill="#EF4444" 
-              name="Min Price"
-              radius={[4, 4, 0, 0]}
-            />
-            <Bar 
-              dataKey="maxPrice" 
-              fill="#F59E0B" 
-              name="Max Price"
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      {seasonalData && seasonalData.length > 0 ? (
+        <div style={{ height }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={seasonalData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="monthName" 
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                tickFormatter={(value: number) => `₹${value}`}
+                tick={{ fontSize: 12 }}
+              />
+              <Tooltip 
+                formatter={(value: any, name: string) => [
+                  `₹${value}/kg`, 
+                  name === 'averagePrice' ? 'Average Price' : 
+                  name === 'minPrice' ? 'Min Price' : 
+                  name === 'maxPrice' ? 'Max Price' : name
+                ]}
+              />
+              <Legend />
+              <Bar 
+                dataKey="averagePrice" 
+                fill="#10B981" 
+                name="Average Price"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar 
+                dataKey="minPrice" 
+                fill="#EF4444" 
+                name="Min Price"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar 
+                dataKey="maxPrice" 
+                fill="#F59E0B" 
+                name="Max Price"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <div style={{ height }} className="flex items-center justify-center bg-gray-50 rounded-lg">
+          <p className="text-gray-500">No seasonal data available</p>
+        </div>
+      )}
 
       {/* Trend Analysis */}
-      <div className="mt-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-3">Monthly Trend Analysis</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {seasonalData.map((item, index) => (
-            <div 
-              key={index} 
-              className="text-center p-3 rounded-lg border"
-              style={{ borderColor: getTrendColor(item.trend) }}
-            >
-              <div className="text-lg font-semibold text-gray-800">
-                {item.monthName}
+      {seasonalData && seasonalData.length > 0 ? (
+        <div className="mt-6">
+          <h4 className="text-sm font-medium text-gray-700 mb-3">Monthly Trend Analysis</h4>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+            {seasonalData.map((item, index) => (
+              <div 
+                key={index} 
+                className="text-center p-3 rounded-lg border"
+                style={{ borderColor: getTrendColor(item.trend) }}
+              >
+                <div className="text-lg font-semibold text-gray-800">
+                  {item.monthName}
+                </div>
+                <div className="text-sm font-medium text-gray-600">
+                  ₹{item.averagePrice}/kg
+                </div>
+                <div className="flex items-center justify-center mt-1">
+                  <span className="text-lg mr-1">{getTrendIcon(item.trend)}</span>
+                  <span 
+                    className="text-xs font-medium"
+                    style={{ color: getTrendColor(item.trend) }}
+                  >
+                    {item.trend}
+                  </span>
+                </div>
               </div>
-              <div className="text-sm font-medium text-gray-600">
-                ₹{item.averagePrice}/kg
-              </div>
-              <div className="flex items-center justify-center mt-1">
-                <span className="text-lg mr-1">{getTrendIcon(item.trend)}</span>
-                <span 
-                  className="text-xs font-medium"
-                  style={{ color: getTrendColor(item.trend) }}
-                >
-                  {item.trend}
-                </span>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Seasonal Insights */}
-      <div className="mt-6 bg-gray-50 p-4 rounded-lg">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">🌾 Seasonal Insights</h4>
-        <div className="space-y-2 text-sm text-gray-600">
-          <p>
-            <strong>Peak Season:</strong> {getPeakMonths().join(', ')} - Best time to sell for maximum profit
-          </p>
-          <p>
-            <strong>Low Season:</strong> {getLowMonths().join(', ')} - Consider storage or alternative markets
-          </p>
-          <p>
-            <strong>Price Variation:</strong> {Math.round(((getPriceRange().max - getPriceRange().min) / getPriceRange().min) * 100)}% difference between peak and low seasons
-          </p>
-          <p>
-            <strong>Recommendation:</strong> Plan your harvest and storage strategy based on these seasonal patterns
-          </p>
+      {seasonalData && seasonalData.length > 0 ? (
+        <div className="mt-6 bg-gray-50 p-4 rounded-lg">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">🌾 Seasonal Insights</h4>
+          <div className="space-y-2 text-sm text-gray-600">
+            <p>
+              <strong>Peak Season:</strong> {getPeakMonths().join(', ')} - Best time to sell for maximum profit
+            </p>
+            <p>
+              <strong>Low Season:</strong> {getLowMonths().join(', ')} - Consider storage or alternative markets
+            </p>
+            <p>
+              <strong>Price Variation:</strong> {Math.round(((getPriceRange().max - getPriceRange().min) / getPriceRange().min) * 100)}% difference between peak and low seasons
+            </p>
+            <p>
+              <strong>Recommendation:</strong> Plan your harvest and storage strategy based on these seasonal patterns
+            </p>
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };

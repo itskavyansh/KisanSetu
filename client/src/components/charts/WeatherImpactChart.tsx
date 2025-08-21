@@ -248,10 +248,10 @@ const WeatherImpactChart: React.FC<WeatherImpactChartProps> = ({
     return advice.length > 0 ? advice : ['Weather conditions are favorable for crop growth'];
   };
 
-  const avgTemperature = weatherData.reduce((sum, d) => sum + d.temperature, 0) / weatherData.length;
-  const totalRainfall = weatherData.reduce((sum, d) => sum + d.rainfall, 0);
-  const avgDiseaseRisk = weatherData.reduce((sum, d) => sum + d.diseaseRisk, 0) / weatherData.length;
-  const avgCropYield = weatherData.reduce((sum, d) => sum + d.cropYield, 0) / weatherData.length;
+  const avgTemperature = weatherData && weatherData.length > 0 ? weatherData.reduce((sum, d) => sum + (d?.temperature || 0), 0) / weatherData.length : 0;
+  const totalRainfall = weatherData && weatherData.length > 0 ? weatherData.reduce((sum, d) => sum + (d?.rainfall || 0), 0) : 0;
+  const avgDiseaseRisk = weatherData && weatherData.length > 0 ? weatherData.reduce((sum, d) => sum + (d?.diseaseRisk || 0), 0) / weatherData.length : 0;
+  const avgCropYield = weatherData && weatherData.length > 0 ? weatherData.reduce((sum, d) => sum + (d?.cropYield || 0), 0) / weatherData.length : 0;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -264,8 +264,9 @@ const WeatherImpactChart: React.FC<WeatherImpactChartProps> = ({
         </p>
       </div>
       
-      <ResponsiveContainer width="100%" height={height}>
-        <ComposedChart data={weatherData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+      {weatherData && weatherData.length > 0 ? (
+        <ResponsiveContainer width="100%" height={height}>
+          <ComposedChart data={weatherData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis 
             dataKey="date"
@@ -325,8 +326,13 @@ const WeatherImpactChart: React.FC<WeatherImpactChartProps> = ({
             strokeDasharray="5 5"
             name="Disease Risk (%)"
           />
-        </ComposedChart>
-      </ResponsiveContainer>
+          </ComposedChart>
+        </ResponsiveContainer>
+      ) : (
+        <div style={{ height }} className="flex items-center justify-center bg-gray-50 rounded-lg">
+          <p className="text-gray-500">No weather data available</p>
+        </div>
+      )}
       
       <div className="mt-6 grid grid-cols-4 gap-4 text-center">
         <div className="bg-red-50 p-3 rounded">
@@ -355,17 +361,19 @@ const WeatherImpactChart: React.FC<WeatherImpactChartProps> = ({
         </div>
       </div>
       
-      <div className="mt-4">
-        <h4 className="font-semibold text-gray-800 mb-2">Weather Advisory for {cropType}</h4>
-        <div className="space-y-2">
-          {getWeatherAdvice().map((advice, index) => (
-            <div key={index} className="flex items-start space-x-2 p-2 bg-yellow-50 rounded">
-              <span className="text-yellow-600 mt-0.5">💡</span>
-              <span className="text-sm text-gray-700">{advice}</span>
-            </div>
-          ))}
+      {weatherData && weatherData.length > 0 && (
+        <div className="mt-4">
+          <h4 className="font-semibold text-gray-800 mb-2">Weather Advisory for {cropType}</h4>
+          <div className="space-y-2">
+            {getWeatherAdvice().map((advice, index) => (
+              <div key={index} className="flex items-start space-x-2 p-2 bg-yellow-50 rounded">
+                <span className="text-yellow-600 mt-0.5">💡</span>
+                <span className="text-sm text-gray-700">{advice}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -84,15 +84,20 @@ const PricePredictionChart: React.FC<PricePredictionChartProps> = ({
   };
 
   const getAveragePrediction = () => {
-    if (predictions.length === 0) return 0;
-    const sum = predictions.reduce((acc, pred) => acc + pred.predictedPrice, 0);
-    return Math.round(sum / predictions.length);
+    if (!predictions || predictions.length === 0) return 0;
+    const validPredictions = predictions.filter(p => p && typeof p.predictedPrice === 'number' && !isNaN(p.predictedPrice));
+    if (validPredictions.length === 0) return 0;
+    const sum = validPredictions.reduce((acc, pred) => acc + pred.predictedPrice, 0);
+    return Math.round(sum / validPredictions.length);
   };
 
   const getPriceChange = () => {
-    if (predictions.length < 2) return 0;
-    const firstPrice = predictions[0].predictedPrice;
-    const lastPrice = predictions[predictions.length - 1].predictedPrice;
+    if (!predictions || predictions.length < 2) return 0;
+    const validPredictions = predictions.filter(p => p && typeof p.predictedPrice === 'number' && !isNaN(p.predictedPrice));
+    if (validPredictions.length < 2) return 0;
+    const firstPrice = validPredictions[0].predictedPrice;
+    const lastPrice = validPredictions[validPredictions.length - 1].predictedPrice;
+    if (firstPrice === 0) return 0;
     return Math.round(((lastPrice - firstPrice) / firstPrice) * 100);
   };
 
@@ -136,111 +141,138 @@ const PricePredictionChart: React.FC<PricePredictionChartProps> = ({
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-50 p-4 rounded-lg">
-          <h4 className="text-sm font-medium text-green-800">Average Prediction</h4>
-          <p className="text-2xl font-bold text-green-900">₹{getAveragePrediction()}/kg</p>
+      {predictions && predictions.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-green-800">Average Prediction</h4>
+            <p className="text-2xl font-bold text-green-900">₹{getAveragePrediction()}/kg</p>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-blue-800">Price Change</h4>
+            <p className={`text-2xl font-bold ${getPriceChange() >= 0 ? 'text-green-900' : 'text-red-900'}`}>
+              {getPriceChange() >= 0 ? '+' : ''}{getPriceChange()}%
+            </p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-purple-800">Confidence</h4>
+            <p className="text-2xl font-bold text-purple-900">
+              {Math.round((predictions[0]?.confidence || 0) * 100)}%
+            </p>
+          </div>
         </div>
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h4 className="text-sm font-medium text-blue-800">Price Change</h4>
-          <p className={`text-2xl font-bold ${getPriceChange() >= 0 ? 'text-green-900' : 'text-red-900'}`}>
-            {getPriceChange() >= 0 ? '+' : ''}{getPriceChange()}%
-          </p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-green-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-green-800">Average Prediction</h4>
+            <p className="text-2xl font-bold text-green-900">₹0/kg</p>
+          </div>
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-blue-800">Price Change</h4>
+            <p className="text-2xl font-bold text-gray-900">0%</p>
+          </div>
+          <div className="bg-purple-50 p-4 rounded-lg">
+            <h4 className="text-sm font-medium text-purple-800">Confidence</h4>
+            <p className="text-2xl font-bold text-purple-900">0%</p>
+          </div>
         </div>
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <h4 className="text-sm font-medium text-purple-800">Confidence</h4>
-          <p className="text-2xl font-bold text-purple-900">
-            {Math.round(predictions[0]?.confidence * 100 || 0)}%
-          </p>
-        </div>
-      </div>
+      )}
 
       {/* Chart */}
-      <div style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={predictions}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-              dataKey="date" 
-              tickFormatter={formatDate}
-              tick={{ fontSize: 12 }}
-            />
-            <YAxis 
-              tickFormatter={(value: number) => `₹${value}`}
-              tick={{ fontSize: 12 }}
-            />
-            <Tooltip 
-              formatter={(value: any, name: string) => [
-                `₹${value}/kg`, 
-                name === 'predictedPrice' ? 'Predicted Price' : name
-              ]}
-              labelFormatter={formatDate}
-            />
-            <Legend />
-            <Area
-              type="monotone"
-              dataKey="predictedPrice"
-              stroke="#10B981"
-              fill="#10B981"
-              fillOpacity={0.3}
-              name="Predicted Price"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
+      {predictions && predictions.length > 0 && predictions.every(p => p && typeof p.predictedPrice === 'number' && !isNaN(p.predictedPrice)) ? (
+        <div style={{ height }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={predictions}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="date" 
+                tickFormatter={formatDate}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                tickFormatter={(value: number) => `₹${value}`}
+                tick={{ fontSize: 12 }}
+              />
+              <Tooltip 
+                formatter={(value: any, name: string) => [
+                  `₹${value}/kg`, 
+                  name === 'predictedPrice' ? 'Predicted Price' : name
+                ]}
+                labelFormatter={formatDate}
+              />
+              <Legend />
+              <Area
+                type="monotone"
+                dataKey="predictedPrice"
+                stroke="#10B981"
+                fill="#10B981"
+                fillOpacity={0.3}
+                name="Predicted Price"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <div style={{ height }} className="flex items-center justify-center bg-gray-50 rounded-lg">
+          <p className="text-gray-500">No prediction data available</p>
+        </div>
+      )}
 
       {/* Confidence Indicators */}
-      <div className="mt-4">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Prediction Confidence</h4>
-        <div className="space-y-2">
-          {predictions.slice(0, 7).map((prediction, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">
-                {formatDate(prediction.date)}
-              </span>
-              <div className="flex items-center space-x-2">
-                <div className="w-16 bg-gray-200 rounded-full h-2">
-                  <div
-                    className="h-2 rounded-full"
-                    style={{
-                      width: `${prediction.confidence * 100}%`,
-                      backgroundColor: getConfidenceColor(prediction.confidence)
-                    }}
-                  ></div>
-                </div>
-                <span className="text-xs text-gray-500">
-                  {Math.round(prediction.confidence * 100)}%
+      {predictions && predictions.length > 0 ? (
+        <div className="mt-4">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Prediction Confidence</h4>
+          <div className="space-y-2">
+            {predictions.slice(0, 7).map((prediction, index) => (
+              <div key={index} className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">
+                  {formatDate(prediction.date)}
                 </span>
+                <div className="flex items-center space-x-2">
+                  <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${prediction.confidence * 100}%`,
+                        backgroundColor: getConfidenceColor(prediction.confidence)
+                      }}
+                    ></div>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {Math.round(prediction.confidence * 100)}%
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      ) : null}
 
       {/* Factors Analysis */}
-      <div className="mt-6">
-        <h4 className="text-sm font-medium text-gray-700 mb-2">Prediction Factors</h4>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="text-center">
-            <div className="text-lg font-semibold text-blue-600">
-              {Math.round(predictions[0]?.factors.trend * 100 || 0)}%
+      {predictions && predictions.length > 0 && predictions[0]?.factors ? (
+        <div className="mt-6">
+          <h4 className="text-sm font-medium text-gray-700 mb-2">Prediction Factors</h4>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="text-center">
+              <div className="text-lg font-semibold text-blue-600">
+                {Math.round((predictions[0]?.factors?.trend || 0) * 100)}%
+              </div>
+              <div className="text-xs text-gray-600">Trend Factor</div>
             </div>
-            <div className="text-xs text-gray-600">Trend Factor</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-semibold text-green-600">
-              {Math.round(predictions[0]?.factors.seasonal * 100 || 0)}%
+            <div className="text-center">
+              <div className="text-lg font-semibold text-green-600">
+                {Math.round((predictions[0]?.factors?.seasonal || 0) * 100)}%
+              </div>
+              <div className="text-xs text-gray-600">Seasonal Factor</div>
             </div>
-            <div className="text-xs text-gray-600">Seasonal Factor</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-semibold text-orange-600">
-              {Math.round(predictions[0]?.factors.volatility * 100 || 0)}%
+            <div className="text-center">
+              <div className="text-lg font-semibold text-orange-600">
+                {Math.round((predictions[0]?.factors?.volatility || 0) * 100)}%
+              </div>
+              <div className="text-xs text-gray-600">Volatility Factor</div>
             </div>
-            <div className="text-xs text-gray-600">Volatility Factor</div>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };

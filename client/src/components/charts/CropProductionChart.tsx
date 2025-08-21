@@ -163,55 +163,61 @@ const CropProductionChart: React.FC<CropProductionChartProps> = ({
     return null;
   };
 
-  const renderBarChart = () => (
-    <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={productionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-        <XAxis 
-          dataKey="crop" 
-          stroke="#666"
-          fontSize={12}
-        />
-        <YAxis 
-          stroke="#666"
-          fontSize={12}
-          tickFormatter={(value) => `${value}k`}
-        />
-        <Tooltip content={<CustomTooltip />} />
-        <Legend />
-        <Bar dataKey="production" fill="#3b82f6" name="Production (k tonnes)" />
-        <Bar dataKey="area" fill="#10b981" name="Area (k hectares)" />
-      </BarChart>
-    </ResponsiveContainer>
-  );
+  const renderBarChart = () => {
+    if (!productionData || productionData.length === 0) return null;
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart data={productionData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+          <XAxis 
+            dataKey="crop" 
+            stroke="#666"
+            fontSize={12}
+          />
+          <YAxis 
+            stroke="#666"
+            fontSize={12}
+            tickFormatter={(value) => `${value}k`}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Legend />
+          <Bar dataKey="production" fill="#3b82f6" name="Production (k tonnes)" />
+          <Bar dataKey="area" fill="#10b981" name="Area (k hectares)" />
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
 
-  const renderPieChart = () => (
-    <ResponsiveContainer width="100%" height={height}>
-      <PieChart>
-        <Pie
-          data={productionData}
-          cx="50%"
-          cy="50%"
-          labelLine={false}
-          label={({ crop, production }: { crop: string; production: number }) => `${crop}: ${production}k`}
-          outerRadius={80}
-          fill="#8884d8"
-          dataKey="production"
-        >
-          {productionData.map((entry, index) => (
-            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-          ))}
-        </Pie>
-        <Tooltip 
-          formatter={(value: number) => [`${value} thousand tonnes`, 'Production']}
-        />
-      </PieChart>
-    </ResponsiveContainer>
-  );
+  const renderPieChart = () => {
+    if (!productionData || productionData.length === 0) return null;
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <PieChart>
+          <Pie
+            data={productionData}
+            cx="50%"
+            cy="50%"
+            labelLine={false}
+            label={({ crop, production }: { crop: string; production: number }) => `${crop}: ${production}k`}
+            outerRadius={80}
+            fill="#8884d8"
+            dataKey="production"
+          >
+            {productionData.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip 
+            formatter={(value: number) => [`${value} thousand tonnes`, 'Production']}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    );
+  };
 
-  const totalProduction = productionData.reduce((sum, item) => sum + item.production, 0);
-  const totalArea = productionData.reduce((sum, item) => sum + item.area, 0);
-  const selectedCropData = productionData.find(item => item.crop === selectedCrop);
+  const totalProduction = productionData && productionData.length > 0 ? productionData.reduce((sum, item) => sum + (item?.production || 0), 0) : 0;
+  const totalArea = productionData && productionData.length > 0 ? productionData.reduce((sum, item) => sum + (item?.area || 0), 0) : 0;
+  const selectedCropData = productionData && productionData.length > 0 ? productionData.find(item => item?.crop === selectedCrop) : null;
 
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
@@ -248,60 +254,70 @@ const CropProductionChart: React.FC<CropProductionChartProps> = ({
         </div>
       </div>
       
-      {chartType === 'bar' ? renderBarChart() : renderPieChart()}
+      {productionData && productionData.length > 0 ? (
+        chartType === 'bar' ? renderBarChart() : renderPieChart()
+      ) : (
+        <div style={{ height }} className="flex items-center justify-center bg-gray-50 rounded-lg">
+          <p className="text-gray-500">No production data available</p>
+        </div>
+      )}
       
-      <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-        <div className="bg-blue-50 p-3 rounded">
-          <p className="text-sm text-gray-600">Total Production</p>
-          <p className="text-lg font-bold text-blue-600">
-            {totalProduction.toLocaleString()}k tonnes
-          </p>
-        </div>
-        <div className="bg-green-50 p-3 rounded">
-          <p className="text-sm text-gray-600">Total Area</p>
-          <p className="text-lg font-bold text-green-600">
-            {totalArea.toLocaleString()}k hectares
-          </p>
-        </div>
-        <div className="bg-purple-50 p-3 rounded">
-          <p className="text-sm text-gray-600">Avg Yield</p>
-          <p className="text-lg font-bold text-purple-600">
-            {(totalProduction / totalArea).toFixed(1)} t/ha
-          </p>
-        </div>
-      </div>
-      
-      <div className="mt-4">
-        <h4 className="font-semibold text-gray-800 mb-2">Production Summary</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-yellow-50 p-3 rounded">
-            <h5 className="font-medium text-yellow-800 mb-1">Selected Crop: {selectedCrop}</h5>
-            {selectedCropData && (
-              <div className="text-sm text-yellow-700">
-                <p>Production: {selectedCropData.production.toLocaleString()}k tonnes</p>
-                <p>Area: {selectedCropData.area.toLocaleString()}k hectares</p>
-                <p>Yield: {selectedCropData.yield.toFixed(1)} t/ha</p>
-              </div>
-            )}
+      {productionData && productionData.length > 0 ? (
+        <div className="mt-6 grid grid-cols-3 gap-4 text-center">
+          <div className="bg-blue-50 p-3 rounded">
+            <p className="text-sm text-gray-600">Total Production</p>
+            <p className="text-lg font-bold text-blue-600">
+              {totalProduction.toLocaleString()}k tonnes
+            </p>
           </div>
-          <div className="bg-gray-50 p-3 rounded">
-            <h5 className="font-medium text-gray-800 mb-1">Top Producing Crops</h5>
-            <div className="space-y-1">
-              {[...productionData]
-                .sort((a, b) => b.production - a.production)
-                .slice(0, 3)
-                .map((crop, index) => (
-                  <div key={crop.crop} className="flex justify-between items-center text-sm">
-                    <span className="text-gray-700">{crop.crop}</span>
-                    <span className="font-semibold text-gray-800">
-                      {crop.production}k tonnes
-                    </span>
-                  </div>
-                ))}
+          <div className="bg-green-50 p-3 rounded">
+            <p className="text-sm text-gray-600">Total Area</p>
+            <p className="text-lg font-bold text-green-600">
+              {totalArea.toLocaleString()}k hectares
+            </p>
+          </div>
+          <div className="bg-purple-50 p-3 rounded">
+            <p className="text-sm text-gray-600">Avg Yield</p>
+            <p className="text-lg font-bold text-purple-600">
+              {totalArea > 0 ? (totalProduction / totalArea).toFixed(1) : '0.0'} t/ha
+            </p>
+          </div>
+        </div>
+      ) : null}
+      
+      {productionData && productionData.length > 0 ? (
+        <div className="mt-4">
+          <h4 className="font-semibold text-gray-800 mb-2">Production Summary</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-yellow-50 p-3 rounded">
+              <h5 className="font-medium text-yellow-800 mb-1">Selected Crop: {selectedCrop}</h5>
+              {selectedCropData && (
+                <div className="text-sm text-yellow-700">
+                  <p>Production: {selectedCropData.production.toLocaleString()}k tonnes</p>
+                  <p>Area: {selectedCropData.area.toLocaleString()}k hectares</p>
+                  <p>Yield: {selectedCropData.yield.toFixed(1)} t/ha</p>
+                </div>
+              )}
+            </div>
+            <div className="bg-gray-50 p-3 rounded">
+              <h5 className="font-medium text-gray-800 mb-1">Top Producing Crops</h5>
+              <div className="space-y-1">
+                {[...productionData]
+                  .sort((a, b) => (b?.production || 0) - (a?.production || 0))
+                  .slice(0, 3)
+                  .map((crop, index) => (
+                    <div key={crop?.crop || index} className="flex justify-between items-center text-sm">
+                      <span className="text-gray-700">{crop?.crop || 'Unknown'}</span>
+                      <span className="font-semibold text-gray-800">
+                        {(crop?.production || 0)}k tonnes
+                      </span>
+                    </div>
+                  ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };

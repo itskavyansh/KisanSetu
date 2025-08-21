@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, AreaChart, Area } from 'recharts';
 import { carbonCreditsAPI } from '../services/carbonCreditsService';
+import ChartErrorBoundary from '../components/common/ChartErrorBoundary';
+import { isValidLineChartData, isValidAreaChartData } from '../utils/chartDataValidator';
 
 type ProjectType = 'tree_planting' | 'rice_cultivation' | 'soil_management';
 type UnitType = 'kg' | 't';
@@ -59,25 +61,66 @@ const CarbonCreditsPage: React.FC = () => {
 
   const priceHistoryData = useMemo(() => {
     if (!market?.priceHistory || !Array.isArray(market.priceHistory)) return [] as Array<{ date: string; price: number }>;
+    
     const count = market.priceHistory.length;
+    if (count === 0) return [];
+    
     const today = new Date();
-    return market.priceHistory.map((p: number, idx: number) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - (count - idx - 1));
-      return { date: d.toISOString().split('T')[0], price: Number(p) };
-    });
+    return market.priceHistory
+      .map((p: number, idx: number) => {
+        const price = Number(p);
+        if (isNaN(price) || !isFinite(price) || price < 0) {
+          return null;
+        }
+        
+        const d = new Date(today);
+        d.setDate(today.getDate() - (count - idx - 1));
+        return { date: d.toISOString().split('T')[0], price };
+      })
+      .filter((item: { date: string; price: number } | null): item is { date: string; price: number } => 
+        item !== null && 
+        typeof item.price === 'number' && 
+        !isNaN(item.price) && 
+        isFinite(item.price) &&
+        item.price >= 0
+      );
   }, [market]);
 
   const earningsSensitivityData = useMemo(() => {
     if (!calcResult?.carbonCredits?.annual || !market?.currentPrice) return [] as Array<{ label: string; price: number; earnings: number }>;
-    const annualKg = Number(calcResult.carbonCredits.annual) || 0;
-    const base = Number(market.currentPrice) || 0;
+    
+    const annualKg = Number(calcResult.carbonCredits.annual);
+    const base = Number(market.currentPrice);
+    
+    // Ensure we have valid numbers
+    if (!annualKg || !base || annualKg <= 0 || base <= 0 || isNaN(annualKg) || isNaN(base)) {
+      return [];
+    }
+    
     const factors = [0.8, 0.9, 1.0, 1.1, 1.2];
     return factors.map(f => {
       const price = Math.round(base * f);
       const earnings = Math.round((annualKg * price) / 1000);
-      return { label: `${Math.round((f - 1) * 100)}%`, price, earnings };
-    });
+      
+      // Double-check that we have valid numbers
+      if (isNaN(price) || isNaN(earnings) || !isFinite(price) || !isFinite(earnings)) {
+        return null;
+      }
+      
+      return { 
+        label: `${Math.round((f - 1) * 100)}%`, 
+        price: price, 
+        earnings: earnings 
+      };
+    }).filter((item): item is { label: string; price: number; earnings: number } => 
+      item !== null && 
+      typeof item.earnings === 'number' && 
+      !isNaN(item.earnings) && 
+      isFinite(item.earnings) &&
+      typeof item.price === 'number' && 
+      !isNaN(item.price) && 
+      isFinite(item.price)
+    );
   }, [calcResult, market]);
 
   // Load saved scenarios from localStorage
@@ -279,20 +322,22 @@ const CarbonCreditsPage: React.FC = () => {
         </div>
       )}
 
-      {priceHistoryData.length > 0 && (
+      {!loading && market && priceHistoryData.length > 0 && isValidLineChartData(priceHistoryData, 'price') && (
         <div className="bg-white border rounded-lg p-4">
           <div className="font-semibold mb-2">Carbon Price (last 30 days)</div>
           <div style={{ height: 260 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={priceHistoryData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" tickFormatter={(v) => new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(v) => `₹${v}`} tick={{ fontSize: 12 }} />
-                <Tooltip labelFormatter={(v) => new Date(v as string).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} formatter={(val: any) => [`₹${val}`, 'Price']} />
-                <Legend />
-                <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} name="Price (₹/t CO₂e)" />
-              </LineChart>
-            </ResponsiveContainer>
+            <ChartErrorBoundary>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={priceHistoryData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" tickFormatter={(v) => new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} tick={{ fontSize: 12 }} />
+                  <YAxis tickFormatter={(v) => `₹${v}`} tick={{ fontSize: 12 }} />
+                  <Tooltip labelFormatter={(v) => new Date(v as string).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} formatter={(val: any) => [`₹${val}`, 'Price']} />
+                  <Legend />
+                  <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} name="Price (₹/t CO₂e)" />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartErrorBoundary>
           </div>
         </div>
       )}
@@ -466,20 +511,22 @@ const CarbonCreditsPage: React.FC = () => {
         </div>
       )}
 
-      {earningsSensitivityData.length > 0 && (
+      {!loading && market && calcResult && earningsSensitivityData && earningsSensitivityData.length > 0 && isValidAreaChartData(earningsSensitivityData, 'earnings') && (
         <div className="bg-white border rounded-lg p-4">
           <div className="font-semibold mb-2">Earnings vs Price (±20%)</div>
           <div style={{ height: 240 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={earningsSensitivityData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis tickFormatter={(v) => `₹${v}`} tick={{ fontSize: 12 }} />
-                <Tooltip formatter={(v: any, n: string) => [`₹${v}`, n === 'earnings' ? 'Earnings' : n]} />
-                <Legend />
-                <Area type="monotone" dataKey="earnings" stroke="#3b82f6" fill="#bfdbfe" fillOpacity={0.5} name="Annual Earnings" />
-              </AreaChart>
-            </ResponsiveContainer>
+            <ChartErrorBoundary>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={earningsSensitivityData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                  <YAxis tickFormatter={(v) => `₹${v}`} tick={{ fontSize: 12 }} />
+                  <Tooltip formatter={(v: any, n: string) => [`₹${v}`, n === 'earnings' ? 'Earnings' : n]} />
+                  <Legend />
+                  <Area type="monotone" dataKey="earnings" stroke="#3b82f6" fill="#bfdbfe" fillOpacity={0.5} name="Annual Earnings" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </ChartErrorBoundary>
           </div>
         </div>
       )}
