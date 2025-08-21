@@ -193,7 +193,7 @@ const CropProductionChart: React.FC<CropProductionChartProps> = ({
           cx="50%"
           cy="50%"
           labelLine={false}
-          label={({ crop, production }) => `${crop}: ${production}k`}
+          label={({ crop, production }: { crop: string; production: number }) => `${crop}: ${production}k`}
           outerRadius={80}
           fill="#8884d8"
           dataKey="production"

@@ -1,27 +1,149 @@
 const express = require('express');
+const multer = require('multer');
 const realCropHealthService = require('../services/realCropHealthService');
+const cropHealthService = require('../services/cropHealthService');
+const { geminiModel } = require('../config/googleCloud');
 const router = express.Router();
 
-// POST /api/crop-health/analyze
-router.post('/analyze', async (req, res) => {
+// Multer configuration for handling image uploads (memory storage)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+});
+
+// GET /api/crop-health/test-image
+router.get('/test-image', async (req, res) => {
   try {
-    const { image, cropType, location = 'Mysuru, Karnataka' } = req.body;
+    console.log('🧪 Testing image processing...');
     
-    if (!image) {
+    // Create a simple test image (1x1 pixel)
+    const testImageBuffer = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64');
+    
+    console.log('📸 Test image created, size:', testImageBuffer.length, 'bytes');
+    
+    // Test the analysis service
+    const cropHealthService = require('../services/cropHealthService');
+    const result = await cropHealthService.analyzeCropImageStructured(testImageBuffer, 'test', 'image/png');
+    
+    res.json({
+      success: true,
+      data: {
+        message: 'Image processing test successful',
+        result: result,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Image test failed:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Image test failed',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// GET /api/crop-health/test-gemini
+router.get('/test-gemini', async (req, res) => {
+  try {
+    console.log('🧪 Testing Gemini connectivity...');
+    
+    // Simple text test
+    const testResult = await geminiModel.generateContent({
+      contents: [{ role: 'user', parts: [{ text: 'Say "Hello" in one word' }] }],
+      generationConfig: { maxOutputTokens: 10 }
+    });
+    
+    const response = testResult.response?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+    
+    res.json({
+      success: true,
+      data: {
+        status: 'Gemini connected',
+        testResponse: response,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('❌ Gemini test failed:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Gemini test failed',
+      details: error.message,
+      stack: error.stack
+    });
+  }
+});
+
+// GET /api/crop-health/health
+router.get('/health', async (req, res) => {
+  try {
+    console.log('🏥 Crop health service health check');
+    
+    // Test Gemini connectivity
+    const testPrompt = 'Hello, this is a test. Please respond with "Gemini is working"';
+    const testResult = await geminiModel.generateContent({
+      contents: [{ role: 'user', parts: [{ text: testPrompt }] }],
+      generationConfig: { maxOutputTokens: 50 }
+    });
+    
+    const response = testResult.response?.candidates?.[0]?.content?.parts?.[0]?.text || 'No response';
+    
+    res.json({
+      success: true,
+      data: {
+        status: 'healthy',
+        gemini: 'connected',
+        testResponse: response,
+        timestamp: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('❌ Health check failed:', error.message);
+    res.status(500).json({
+      success: false,
+      error: 'Health check failed',
+      details: error.message
+    });
+  }
+});
+
+// POST /api/crop-health/analyze
+router.post('/analyze', upload.single('image'), async (req, res) => {
+  try {
+    const cropType = req.body.cropType;
+    const file = req.file;
+    
+    console.log('📸 Crop health analysis request received');
+    console.log('File info:', {
+      fieldname: file?.fieldname,
+      originalname: file?.originalname,
+      mimetype: file?.mimetype,
+      size: file?.size,
+      buffer: file?.buffer ? `${file.buffer.length} bytes` : 'No buffer'
+    });
+    console.log('Crop type:', cropType);
+    
+    if (!file || !file.buffer) {
       return res.status(400).json({
         success: false,
         error: 'Image is required for analysis'
       });
     }
+
+    console.log(`🔍 Analyzing crop health (Gemini) for ${cropType || 'unknown crop'}`);
+
+    // Use Gemini for structured crop analysis and validation
+    const analysis = await cropHealthService.analyzeCropImageStructured(file.buffer, cropType, file.mimetype || 'image/jpeg');
     
-    console.log(`🔍 Analyzing crop health for ${cropType || 'unknown crop'}`);
-    
-    const analysis = await realCropHealthService.analyzeCropHealthFromImage(image, cropType);
-    res.json(analysis);
-    
+    console.log('✅ Analysis completed:', analysis);
+    return res.json(analysis);
   } catch (error) {
-    console.error('Crop health analysis error:', error.message);
-    res.status(500).json({
+    console.error('❌ Crop health analysis error:', error.message);
+    console.error('Error stack:', error.stack);
+    return res.status(500).json({
       success: false,
       error: error.message
     });

@@ -9,17 +9,24 @@ import te from "./Locales/te.json";
 
 const savedLanguage = typeof window !== 'undefined' ? (localStorage.getItem('language') || 'en') : 'en';
 
-i18n.use(initReactI18next).init({
-  resources: {
-    en: { translation: en },
-    kn: { translation: kn },
-    hi: { translation: hi },
-    ta: { translation: ta },
-    te: { translation: te },
-  },
-  lng: savedLanguage, // default language (persisted if available)
-  fallbackLng: "en",
-  interpolation: { escapeValue: false },
-});
+i18n
+  .use(initReactI18next)
+  .init({
+    resources: {
+      en: { translation: en },
+      kn: { translation: kn },
+      hi: { translation: hi },
+      ta: { translation: ta },
+      te: { translation: te },
+    },
+    lng: savedLanguage,
+    fallbackLng: "en",
+    interpolation: { 
+      escapeValue: false 
+    },
+    react: {
+      useSuspense: false
+    }
+  });
 
 export default i18n;

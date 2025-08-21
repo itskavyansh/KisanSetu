@@ -166,7 +166,7 @@ const PricePredictionChart: React.FC<PricePredictionChartProps> = ({
               tick={{ fontSize: 12 }}
             />
             <YAxis 
-              tickFormatter={(value) => `₹${value}`}
+              tickFormatter={(value: number) => `₹${value}`}
               tick={{ fontSize: 12 }}
             />
             <Tooltip 

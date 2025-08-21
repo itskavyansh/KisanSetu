@@ -268,10 +268,10 @@ const WeatherImpactChart: React.FC<WeatherImpactChartProps> = ({
         <ComposedChart data={weatherData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
           <XAxis 
-            dataKey="date" 
+            dataKey="date"
             stroke="#666"
             fontSize={12}
-            tickFormatter={(value) => new Date(value).toLocaleDateString('en-IN', { 
+            tickFormatter={(value: string | number) => new Date(value).toLocaleDateString('en-IN', { 
               day: '2-digit', 
               month: 'short' 
             })}
@@ -280,14 +280,14 @@ const WeatherImpactChart: React.FC<WeatherImpactChartProps> = ({
             yAxisId="left"
             stroke="#666"
             fontSize={12}
-            tickFormatter={(value) => `${value}°C`}
+            tickFormatter={(value: number) => `${value}°C`}
           />
           <YAxis 
             yAxisId="right"
             orientation="right"
             stroke="#666"
             fontSize={12}
-            tickFormatter={(value) => `${value}%`}
+            tickFormatter={(value: number) => `${value}%`}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />

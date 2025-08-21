@@ -1,0 +1,21 @@
+{
+  "dashboard": "डैशबोर्ड",
+  "cropHealth": "फसल स्वास्थ्य",
+  "marketIntelligence": "बाजार खुफिया",
+  "governmentSchemes": "सरकारी योजनाएं",
+  "carbonCredits": "कार्बन क्रेडिट",
+  "weather": "मौसम",
+  "cropCalendar": "फसल कैलेंडर",
+  "profitCalculator": "लाभ कैलकुलेटर",
+  "logout": "लॉगआउट",
+  "scanCrop": "फसल स्कैन",
+  "uploadImage": "छवि अपलोड",
+  "analyzeCrop": "फसल स्वास्थ्य विश्लेषण",
+  "diseaseDetection": "रोग पहचान",
+  "treatmentRecommendations": "उपचार सिफारिशें",
+  "preventionTips": "रोकथाम टिप्स",
+  "marketImpact": "बाजार प्रभाव",
+  "confidence": "आत्मविश्वास",
+  "healthy": "स्वस्थ",
+  "unknown": "अज्ञात"
+}

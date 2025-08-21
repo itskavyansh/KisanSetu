@@ -1,0 +1,21 @@
+{
+  "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+  "cropHealth": "ಬೆಳೆ ಆರೋಗ್ಯ",
+  "marketIntelligence": "ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿಮತ್ತೆ",
+  "governmentSchemes": "ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು",
+  "carbonCredits": "ಕಾರ್ಬನ್ ಕ್ರೆಡಿಟ್‌ಗಳು",
+  "weather": "ಹವಾಮಾನ",
+  "cropCalendar": "ಬೆಳೆ ಕ್ಯಾಲೆಂಡರ್",
+  "profitCalculator": "ಲಾಭ ಕ್ಯಾಲ್ಕುಲೇಟರ್",
+  "logout": "ಲಾಗ್‌ಔಟ್",
+  "scanCrop": "ಬೆಳೆ ಸ್ಕ್ಯಾನ್",
+  "uploadImage": "ಚಿತ್ರ ಅಪ್‌ಲೋಡ್",
+  "analyzeCrop": "ಬೆಳೆ ಆರೋಗ್ಯ ವಿಶ್ಲೇಷಿಸಿ",
+  "diseaseDetection": "ರೋಗ ಪತ್ತೆ",
+  "treatmentRecommendations": "ಚಿಕಿತ್ಸೆ ಶಿಫಾರಸುಗಳು",
+  "preventionTips": "ತಡೆಗಟ್ಟುವ ಸಲಹೆಗಳು",
+  "marketImpact": "ಮಾರುಕಟ್ಟೆ ಪರಿಣಾಮ",
+  "confidence": "ನಂಬಿಕೆ",
+  "healthy": "ಆರೋಗ್ಯಕರ",
+  "unknown": "ಅಜ್ಞಾತ"
+}
