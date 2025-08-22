@@ -30,6 +30,12 @@ const CropScanPage: React.FC = () => {
     }
   }, [currentUser]);
 
+  // Debug effect to monitor result state changes
+  useEffect(() => {
+    console.log('🔄 Result state changed:', result);
+    console.log('🔄 Loading state:', loading);
+  }, [result, loading]);
+
   // Load scan history from Firebase
   const loadScanHistory = async () => {
     if (!currentUser) return;
@@ -58,7 +64,6 @@ const CropScanPage: React.FC = () => {
         crop: scanResult.data?.crop || 'Unknown',
         disease: scanResult.data?.disease || 'Unknown',
         confidence: scanResult.data?.confidence || 0,
-        imageUrl: '', // This will be set by the service after upload
         result: scanResult
       };
 
@@ -66,7 +71,7 @@ const CropScanPage: React.FC = () => {
       
       // Reload history to show the new scan
       await loadScanHistory();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error saving scan to history:', err);
       // Don't show error to user as this is not critical
       // The scan result is still displayed, just not saved to history
@@ -76,11 +81,11 @@ const CropScanPage: React.FC = () => {
   };
 
   // Remove scan from Firebase history
-  const removeFromHistory = async (id: string, imageUrl?: string) => {
+  const removeFromHistory = async (id: string) => {
     if (!id) return;
     
     try {
-      await ScanHistoryService.deleteScan(id, imageUrl);
+      await ScanHistoryService.deleteScan(id);
       setScanHistory(prev => prev.filter(scan => scan.id !== id));
     } catch (err) {
       console.error('Error deleting scan:', err);
@@ -104,7 +109,12 @@ const CropScanPage: React.FC = () => {
   // Load scan result from history
   const loadFromHistory = (scan: ScanHistoryItem) => {
     setResult(scan.result);
-    setPreviewUrl(scan.imageUrl);
+    // Convert base64 image data back to blob URL for display
+    if (scan.imageData) {
+      const blob = new Blob([Uint8Array.from(atob(scan.imageData), c => c.charCodeAt(0))], { type: 'image/jpeg' });
+      const url = URL.createObjectURL(blob);
+      setPreviewUrl(url);
+    }
     setFile(null); // Clear current file since we're loading from history
   };
 
@@ -324,20 +334,50 @@ const CropScanPage: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      console.log('🚀 Starting crop analysis...');
       const response = await cropHealthAPI.analyzeCrop({
         image: file
       });
+      console.log('✅ Analysis response received:', response);
+      console.log('📊 Response structure:', {
+        hasData: !!response.data,
+        dataKeys: response.data ? Object.keys(response.data) : [],
+        isPlant: response.data?.isPlant,
+        disease: response.data?.disease,
+        confidence: response.data?.confidence
+      });
+      
+      // Validate response structure
+      if (!response || !response.data) {
+        throw new Error('Invalid response structure from server');
+      }
+      
+      console.log('🔄 About to set result state...');
       setResult(response);
+      console.log('🔄 Result state set, waiting for re-render...');
       
       // Add to Firebase history
       if (file) {
-        await addToHistory(response, file);
+        console.log('💾 Saving to history...');
+        try {
+          await addToHistory(response, file);
+          console.log('✅ Saved to history');
+        } catch (historyError) {
+          console.warn('⚠️ Failed to save to history:', historyError);
+          // Show a subtle notification to the user
+          setError('Analysis completed! Note: Scan history saving failed.');
+          // Clear the error after 5 seconds
+          setTimeout(() => setError(null), 5000);
+        }
       }
       
     } catch (err: any) {
+      console.error('❌ Analysis error:', err);
       setError(err.response?.data?.message || 'Failed to analyze crop image');
     } finally {
+      console.log('🔄 Setting loading to false...');
       setLoading(false);
+      console.log('🔄 Loading state set to false');
     }
   };
 
@@ -543,7 +583,10 @@ const CropScanPage: React.FC = () => {
                   </div>
                 )}
                 {(() => {
+                  console.log('🔍 Rendering results with data:', result);
                   const res: any = (result as any)?.data || result;
+                  console.log('📊 Processed result data:', res);
+                  
                   if (res && res.isPlant === false) {
                     return (
                       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -670,21 +713,23 @@ const CropScanPage: React.FC = () => {
                         <h3 className="font-semibold text-gray-900 text-sm">{scan.crop}</h3>
                         <p className="text-xs text-gray-600">{formatTimestamp(scan.timestamp)}</p>
                       </div>
-                      <button
-                        onClick={() => removeFromHistory(scan.id!, scan.imageUrl)}
-                        className="text-red-500 hover:text-red-700 text-sm ml-2"
-                      >
-                        ×
-                      </button>
+                                             <button
+                         onClick={() => removeFromHistory(scan.id!)}
+                         className="text-red-500 hover:text-red-700 text-sm ml-2"
+                       >
+                         ×
+                       </button>
                     </div>
                     
-                    <div className="mb-3">
-                      <img 
-                        src={scan.imageUrl} 
-                        alt={`${scan.crop} scan`} 
-                        className="w-full h-24 object-cover rounded mb-2"
-                      />
-                    </div>
+                                         <div className="mb-3">
+                       {scan.imageData && (
+                         <img 
+                           src={`data:image/jpeg;base64,${scan.imageData}`}
+                           alt={`${scan.crop} scan`} 
+                           className="w-full h-24 object-cover rounded mb-2"
+                         />
+                       )}
+                     </div>
                     
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">

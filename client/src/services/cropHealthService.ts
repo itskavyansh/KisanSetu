@@ -8,10 +8,13 @@ export interface CropAnalysisRequest {
 export interface CropAnalysisResponse {
   success: boolean;
   data: {
-    analysis: string;
-    timestamp: string;
-    confidence: string;
-    recommendations: string[];
+    isPlant: boolean;
+    message: string;
+    disease: string;
+    confidence: number;
+    treatments: string[];
+    prevention: string[];
+    marketImpact: string;
   };
 }
 

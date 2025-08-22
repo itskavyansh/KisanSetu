@@ -247,7 +247,33 @@ class CarbonCreditService {
         }
       };
     } catch (error) {
-      throw new Error(`Failed to get market info: ${error.message}`);
+      console.error('❌ Failed to fetch live market data:', error.message);
+      
+      // Return fallback data when API fails
+      const fallbackPrice = 900; // ₹900 per tonne CO2
+      const fallbackHistory = Array.from({ length: 30 }, (_, i) => {
+        const basePrice = fallbackPrice;
+        const variation = Math.random() * 0.2 - 0.1; // ±10% variation
+        return basePrice * (1 + variation);
+      });
+
+      // Update in-memory snapshot with fallback data
+      this.marketPrices.current = fallbackPrice;
+      this.marketPrices.historical = fallbackHistory;
+      this.marketPrices.trend = 'stable';
+      this.marketPrices.source = 'fallback_data';
+
+      return {
+        success: true,
+        data: {
+          currentPrice: fallbackPrice,
+          priceHistory: fallbackHistory,
+          trend: 'stable',
+          source: 'fallback_data',
+          lastUpdated: new Date().toISOString(),
+          note: 'Using fallback data due to API unavailability'
+        }
+      };
     }
   }
 

@@ -11,13 +11,7 @@ import {
   writeBatch,
   serverTimestamp 
 } from 'firebase/firestore';
-import { 
-  ref, 
-  uploadBytes, 
-  getDownloadURL, 
-  deleteObject 
-} from 'firebase/storage';
-import { db, storage } from '../config/firebase';
+import { db } from '../config/firebase';
 
 export interface ScanHistoryItem {
   id?: string;
@@ -26,7 +20,7 @@ export interface ScanHistoryItem {
   crop: string;
   disease: string;
   confidence: number;
-  imageUrl: string;
+  imageData?: string; // Base64 image data (optional)
   result: any;
   createdAt: any; // Firestore timestamp
 }
@@ -34,37 +28,33 @@ export interface ScanHistoryItem {
 export class ScanHistoryService {
   private static COLLECTION_NAME = 'scanHistory';
 
-  // Upload image to Firebase Storage and get download URL
-  private static async uploadImageToStorage(userId: string, imageFile: File): Promise<string> {
-    try {
-      const timestamp = Date.now();
-      const fileName = `crop-scans/${userId}/${timestamp}-${imageFile.name}`;
-      const storageRef = ref(storage, fileName);
-      
-      // Upload the file
-      await uploadBytes(storageRef, imageFile);
-      
-      // Get the download URL
-      const downloadURL = await getDownloadURL(storageRef);
-      return downloadURL;
-    } catch (error) {
-      console.error('Error uploading image to storage:', error);
-      throw new Error('Failed to upload image');
-    }
+  // Convert image file to base64 for Firestore storage
+  private static async imageToBase64(imageFile: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        // Remove the data:image/jpeg;base64, prefix
+        const base64 = result.split(',')[1];
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(imageFile);
+    });
   }
 
-  // Add new scan to user's history with image upload
+  // Add new scan to user's history with base64 image
   static async addScan(userId: string, scanData: Omit<ScanHistoryItem, 'id' | 'userId' | 'timestamp' | 'createdAt'>, imageFile: File): Promise<string> {
     try {
-      // First upload the image to Firebase Storage
-      const imageUrl = await this.uploadImageToStorage(userId, imageFile);
+      // Convert image to base64 for Firestore storage
+      const imageData = await this.imageToBase64(imageFile);
       
       const scanDoc = {
         userId,
         timestamp: serverTimestamp(),
         createdAt: serverTimestamp(),
         ...scanData,
-        imageUrl // Use the Firebase Storage URL instead of blob URL
+        imageData // Store base64 image data in Firestore
       };
 
       const docRef = await addDoc(collection(db, this.COLLECTION_NAME), scanDoc);
@@ -109,22 +99,11 @@ export class ScanHistoryService {
     }
   }
 
-  // Delete specific scan from user's history and remove image from storage
-  static async deleteScan(scanId: string, imageUrl?: string): Promise<void> {
+  // Delete specific scan from user's history
+  static async deleteScan(scanId: string): Promise<void> {
     try {
-      // Delete the document from Firestore
+      // Delete the document from Firestore (image data is included in the document)
       await deleteDoc(doc(db, this.COLLECTION_NAME, scanId));
-      
-      // If imageUrl is provided and it's a Firebase Storage URL, delete the image too
-      if (imageUrl && imageUrl.includes('firebasestorage.googleapis.com')) {
-        try {
-          const imageRef = ref(storage, imageUrl);
-          await deleteObject(imageRef);
-        } catch (storageError) {
-          console.warn('Failed to delete image from storage:', storageError);
-          // Don't fail the whole operation if image deletion fails
-        }
-      }
     } catch (error) {
       console.error('Error deleting scan:', error);
       throw new Error('Failed to delete scan');
@@ -142,23 +121,7 @@ export class ScanHistoryService {
       const querySnapshot = await getDocs(q);
       const batch = writeBatch(db);
 
-      // Delete images from storage first
-      const deletePromises = querySnapshot.docs.map(async (docSnapshot) => {
-        const data = docSnapshot.data();
-        if (data.imageUrl && data.imageUrl.includes('firebasestorage.googleapis.com')) {
-          try {
-            const imageRef = ref(storage, data.imageUrl);
-            await deleteObject(imageRef);
-          } catch (storageError) {
-            console.warn('Failed to delete image from storage:', storageError);
-          }
-        }
-      });
-
-      // Wait for all image deletions to complete
-      await Promise.all(deletePromises);
-
-      // Then delete all documents
+      // Delete all documents (image data is included in the documents)
       querySnapshot.forEach((doc) => {
         batch.delete(doc.ref);
       });
