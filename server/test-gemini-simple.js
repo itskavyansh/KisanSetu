@@ -2,7 +2,11 @@ require('dotenv').config();
 
 console.log('🧪 Testing Gemini API Key...\n');
 
-const apiKey = process.env.GOOGLE_API_KEY || 'AIzaSyAnEATv0YIS1e9Zt9oKKkjm13w8CzViJuY';
+const apiKey = process.env.GOOGLE_API_KEY;
+if (!apiKey) {
+  console.error('❌ GOOGLE_API_KEY not found in environment variables');
+  process.exit(1);
+}
 console.log('🔑 API Key:', apiKey.substring(0, 10) + '...');
 
 async function testGeminiAPI() {

@@ -26,7 +26,11 @@ async function testGemini() {
       global.fetch = require('node-fetch');
     }
     
-    const apiKey = process.env.GOOGLE_API_KEY || 'AIzaSyAnEATv0YIS1e9Zt9oKKkjm13w8CzViJuY';
+    const apiKey = process.env.GOOGLE_API_KEY;
+if (!apiKey) {
+  console.error('❌ GOOGLE_API_KEY not found in environment variables');
+  process.exit(1);
+}
     console.log('Using API key:', apiKey.substring(0, 10) + '...');
     
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
