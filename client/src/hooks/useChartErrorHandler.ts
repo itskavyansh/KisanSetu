@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import React, { useCallback } from 'react';
 
 /**
  * Custom hook to handle chart rendering errors
@@ -40,10 +40,17 @@ export const useChartErrorHandler = () => {
       return renderFn();
     } catch (error) {
       handleChartError(error as Error);
-      return fallback || (
-        <div className="flex items-center justify-center bg-gray-50 rounded-lg p-4">
-          <p className="text-gray-500">Chart could not be displayed</p>
-        </div>
+      return (
+        fallback ||
+        React.createElement(
+          'div',
+          { className: 'flex items-center justify-center bg-gray-50 rounded-lg p-4' },
+          React.createElement(
+            'p',
+            { className: 'text-gray-500' },
+            'Chart could not be displayed'
+          )
+        )
       );
     }
   }, [handleChartError]);

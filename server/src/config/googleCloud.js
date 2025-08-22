@@ -1,14 +1,12 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
-// Use API key authentication for Google AI
-const apiKey = process.env.GEMINI_API_KEY;
+// Use API key authentication for Google AI (supports multiple env var names)
+const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
 
 if (!apiKey) {
-  console.error('❌ Missing required environment variable: GEMINI_API_KEY');
-  console.error('Please set your Gemini API key in the .env file');
-  process.exit(1);
+  console.warn('⚠️ Missing Gemini API key (set GEMINI_API_KEY or GOOGLE_API_KEY). Gemini features will be disabled.');
 }
 
 console.log('🔧 Initializing Google AI with API key:');
@@ -18,14 +16,17 @@ let genAI;
 let geminiModel;
 
 try {
-  genAI = new GoogleGenerativeAI(apiKey);
-  geminiModel = genAI.getGenerativeModel({ model: modelName });
-
-  console.log('✅ Google AI initialized successfully with API key');
+  if (apiKey) {
+    genAI = new GoogleGenerativeAI(apiKey);
+    geminiModel = genAI.getGenerativeModel({ model: modelName });
+    console.log('✅ Google AI initialized successfully with API key');
+  } else {
+    geminiModel = null;
+  }
 } catch (error) {
   console.error('❌ Failed to initialize Google AI:', error?.message || error);
   console.error('Please check your API key.');
-  process.exit(1);
+  geminiModel = null;
 }
 
 module.exports = {

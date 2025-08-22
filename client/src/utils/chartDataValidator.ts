@@ -10,7 +10,7 @@ export interface ChartDataItem {
 /**
  * Validates if data array is safe to use with Recharts
  */
-export const isValidChartData = (data: any[] | undefined | null): boolean => {
+export const isValidChartData = (data: any[] | undefined | null): data is any[] => {
   if (!data || !Array.isArray(data) || data.length === 0) {
     return false;
   }
@@ -64,14 +64,14 @@ export const filterValidNumericData = (data: any[] | undefined | null, dataKey: 
  * Validates if data is safe for Area charts specifically
  */
 export const isValidAreaChartData = (data: any[] | undefined | null, dataKey: string): boolean => {
-  return hasValidNumericData(data, dataKey) && data!.length >= 2;
+  return hasValidNumericData(data, dataKey) && Array.isArray(data) && data.length >= 2;
 };
 
 /**
  * Validates if data is safe for Line charts specifically
  */
 export const isValidLineChartData = (data: any[] | undefined | null, dataKey: string): boolean => {
-  return hasValidNumericData(data, dataKey) && data!.length >= 2;
+  return hasValidNumericData(data, dataKey) && Array.isArray(data) && data.length >= 2;
 };
 
 /**
@@ -107,7 +107,7 @@ export const withChartValidation = <T extends ChartDataItem>(
   const isValid = validator(data, dataKey);
   
   if (isValid) {
-    return { isValid: true, safeData: data! };
+    return { isValid: true, safeData: (data as T[]) };
   }
   
   return { 
