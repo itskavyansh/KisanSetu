@@ -762,62 +762,651 @@ const Dashboard: React.FC = () => {
   };
 
   const t = (key: string, fallback?: string) => {
-    // Simple translation system - in a real app, you'd use i18n libraries
+    // Comprehensive translation system for the entire dashboard
     const translations: Record<string, Record<string, string>> = {
       en: {
+        // Greetings
         'greeting_morning': 'Good Morning',
         'greeting_afternoon': 'Good Afternoon',
         'greeting_evening': 'Good Evening',
         'greeting_night': 'Good Night',
-        'current_season': 'Current Season',
+        
+        // Dashboard Sections
+        'dashboard_title': 'Farm Dashboard',
         'step_progress': 'Step Progress',
         'farm_performance': 'Farm Performance',
         'live_crop_status': 'Live Crop Status',
-        'quick_actions': 'Quick Actions'
+        'quick_actions': 'Quick Actions',
+        'critical_alerts': 'Critical Alerts',
+        'weather_intelligence': 'Weather Intelligence',
+        'market_intelligence': 'Market Intelligence',
+        'ai_features': 'AI-Powered Features',
+        
+        // Step Names
+        'step_1': 'Review Critical Alerts',
+        'step_2': 'Check Farm Performance',
+        'step_3': 'Monitor Crops & Weather',
+        'step_4': 'Take Action',
+        
+        // Common Actions
+        'show_help': 'Show Help',
+        'hide_help': 'Hide Help',
+        'next_step': 'Next Step',
+        'previous_step': 'Previous Step',
+        'start_over': 'Start Over',
+        'dashboard_complete': 'Dashboard Complete!',
+        
+        // Metrics & Data
+        'farm_efficiency': 'Farm Efficiency',
+        'monthly_income': 'Monthly Income',
+        'monthly_expenses': 'Monthly Expenses',
+        'monthly_profit': 'Monthly Profit',
+        'active_crops': 'Active Crops',
+        'weather_forecast': 'Weather Forecast',
+        'market_trends': 'Market Trends',
+        'crop_health': 'Crop Health',
+        
+        // Status & Alerts
+        'healthy': 'Healthy',
+        'warning': 'Warning',
+        'critical': 'Critical',
+        'attention_required': 'Attention Required',
+        'no_alerts': 'No Critical Alerts',
+        
+        // Quick Actions
+        'scan_crop': 'Scan Crop',
+        'check_weather': 'Check Weather',
+        'view_market': 'View Market',
+        'ai_assistant': 'AI Assistant',
+        'government_schemes': 'Government Schemes',
+        'profit_calculator': 'Profit Calculator',
+        'crop_calendar': 'Crop Calendar',
+        'carbon_credits': 'Carbon Credits',
+        
+        // Performance & Analytics
+        'performance_overview': 'Performance Overview',
+        'efficiency_score': 'Efficiency Score',
+        'revenue_trends': 'Revenue Trends',
+        'expense_breakdown': 'Expense Breakdown',
+        'crop_distribution': 'Crop Distribution',
+        'seasonal_analysis': 'Seasonal Analysis',
+        
+        // Weather & Climate
+        'current_weather': 'Current Weather',
+        'temperature': 'Temperature',
+        'humidity': 'Humidity',
+        'wind_speed': 'Wind Speed',
+        'precipitation': 'Precipitation',
+        'uv_index': 'UV Index',
+        
+        // Market & Prices
+        'current_prices': 'Current Prices',
+        'price_trends': 'Price Trends',
+        'market_analysis': 'Market Analysis',
+        'demand_forecast': 'Demand Forecast',
+        'supply_status': 'Supply Status',
+        
+        // AI & Intelligence
+        'smart_recommendations': 'Smart Recommendations',
+        'predictive_analytics': 'Predictive Analytics',
+        'crop_optimization': 'Crop Optimization',
+        'risk_assessment': 'Risk Assessment',
+        
+        // Tutorial & Help
+        'tutorial_title': 'Dashboard Tutorial',
+        'step_by_step_guide': 'Step-by-Step Progress Guide',
+        'helpful_tutorial': 'Helpful Tutorial Overlay',
+        'voice_commands': 'Voice Commands',
+        'navigation_help': 'Navigation Help',
+        'chat_help': 'Chat Help',
+        'content_help': 'Content Help',
+        'language_help': 'Language Help',
+        
+        // Network & Performance
+        'network_status': 'Network Status',
+        'performance_mode': 'Performance Mode',
+        'offline_mode': 'Offline Mode',
+        'cached_data': 'Cached Data',
+        'connection_type': 'Connection Type',
+        'loading_performance': 'Loading Performance',
+        
+        // Confirmation & Actions
+        'confirm_action': 'Confirm Action',
+        'action_completed': 'Action Completed',
+        'undo_available': 'Undo Available',
+        'recent_actions': 'Recent Actions',
+        'action_receipts': 'Action Receipts',
+        
+        // Error Handling
+        'friendly_error': 'Something went wrong',
+        'retry_operation': 'Retry Operation',
+        'auto_save_enabled': 'Auto-save Enabled',
+        'last_saved': 'Last Saved',
+        'recovery_available': 'Recovery Available',
+        
+        // Chat & AI
+        'ai_assistant_title': 'AI Farming Assistant',
+        'send_message': 'Send Message',
+        'type_message': 'Type your message...',
+        'chat_loading': 'AI is thinking...',
+        'voice_input': 'Voice Input',
+        'text_to_speech': 'Text to Speech'
       },
+      
       hi: {
+        // Greetings
         'greeting_morning': 'सुप्रभात',
         'greeting_afternoon': 'सुभ दिन',
         'greeting_evening': 'सुभ संध्या',
         'greeting_night': 'शुभ रात्रि',
-        'current_season': 'वर्तमान मौसम',
+        
+        // Dashboard Sections
+        'dashboard_title': 'खेत डैशबोर्ड',
         'step_progress': 'चरण प्रगति',
         'farm_performance': 'खेत प्रदर्शन',
         'live_crop_status': 'लाइव फसल स्थिति',
-        'quick_actions': 'त्वरित कार्य'
+        'quick_actions': 'त्वरित कार्य',
+        'critical_alerts': 'महत्वपूर्ण सचेतावनी',
+        'weather_intelligence': 'मौसम जानकारी',
+        'market_intelligence': 'बाजार जानकारी',
+        'ai_features': 'एआई सुविधाएं',
+        
+        // Step Names
+        'step_1': 'महत्वपूर्ण सचेतावनी देखें',
+        'step_2': 'खेत प्रदर्शन जांचें',
+        'step_3': 'फसल और मौसम की निगरानी',
+        'step_4': 'कार्रवाई करें',
+        
+        // Common Actions
+        'show_help': 'सहायता दिखाएं',
+        'hide_help': 'सहायता छिपाएं',
+        'next_step': 'अगला कदम',
+        'previous_step': 'पिछला कदम',
+        'start_over': 'फिर से शुरू करें',
+        'dashboard_complete': 'डैशबोर्ड पूरा!',
+        
+        // Metrics & Data
+        'farm_efficiency': 'खेत दक्षता',
+        'monthly_income': 'मासिक आय',
+        'monthly_expenses': 'मासिक खर्च',
+        'monthly_profit': 'मासिक लाभ',
+        'active_crops': 'सक्रिय फसलें',
+        'weather_forecast': 'मौसम पूर्वानुमान',
+        'market_trends': 'बाजार प्रवृत्तियां',
+        'crop_health': 'फसल स्वास्थ्य',
+        
+        // Status & Alerts
+        'healthy': 'स्वस्थ',
+        'warning': 'चेतावनी',
+        'critical': 'महत्वपूर्ण',
+        'attention_required': 'ध्यान आवश्यक',
+        'no_alerts': 'कोई महत्वपूर्ण सचेतावनी नहीं',
+        
+        // Quick Actions
+        'scan_crop': 'फसल स्कैन करें',
+        'check_weather': 'मौसम जांचें',
+        'view_market': 'बाजार देखें',
+        'ai_assistant': 'एआई सहायक',
+        'government_schemes': 'सरकारी योजनाएं',
+        'profit_calculator': 'लाभ कैलकुलेटर',
+        'crop_calendar': 'फसल कैलेंडर',
+        'carbon_credits': 'कार्बन क्रेडिट',
+        
+        // Performance & Analytics
+        'performance_overview': 'प्रदर्शन अवलोकन',
+        'efficiency_score': 'दक्षता स्कोर',
+        'revenue_trends': 'राजस्व प्रवृत्तियां',
+        'expense_breakdown': 'खर्च विवरण',
+        'crop_distribution': 'फसल वितरण',
+        'seasonal_analysis': 'मौसमी विश्लेषण',
+        
+        // Weather & Climate
+        'current_weather': 'वर्तमान मौसम',
+        'temperature': 'तापमान',
+        'humidity': 'आर्द्रता',
+        'wind_speed': 'हवा की गति',
+        'precipitation': 'वर्षा',
+        'uv_index': 'यूवी सूचकांक',
+        
+        // Market & Prices
+        'current_prices': 'वर्तमान मूल्य',
+        'price_trends': 'मूल्य प्रवृत्तियां',
+        'market_analysis': 'बाजार विश्लेषण',
+        'demand_forecast': 'मांग पूर्वानुमान',
+        'supply_status': 'आपूर्ति स्थिति',
+        
+        // AI & Intelligence
+        'smart_recommendations': 'स्मार्ट सिफारिशें',
+        'predictive_analytics': 'भविष्यवाणी विश्लेषण',
+        'crop_optimization': 'फसल अनुकूलन',
+        'risk_assessment': 'जोखिम मूल्यांकन',
+        
+        // Tutorial & Help
+        'tutorial_title': 'डैशबोर्ड ट्यूटोरियल',
+        'step_by_step_guide': 'चरण-दर-चरण प्रगति गाइड',
+        'helpful_tutorial': 'सहायक ट्यूटोरियल',
+        'voice_commands': 'आवाज आदेश',
+        'navigation_help': 'नेविगेशन सहायता',
+        'chat_help': 'चैट सहायता',
+        'content_help': 'सामग्री सहायता',
+        'language_help': 'भाषा सहायता',
+        
+        // Network & Performance
+        'network_status': 'नेटवर्क स्थिति',
+        'performance_mode': 'प्रदर्शन मोड',
+        'offline_mode': 'ऑफलाइन मोड',
+        'cached_data': 'कैश डेटा',
+        'connection_type': 'कनेक्शन प्रकार',
+        'loading_performance': 'लोडिंग प्रदर्शन',
+        
+        // Confirmation & Actions
+        'confirm_action': 'कार्रवाई की पुष्टि करें',
+        'action_completed': 'कार्रवाई पूरी',
+        'undo_available': 'पूर्ववत उपलब्ध',
+        'recent_actions': 'हाल की कार्रवाई',
+        'action_receipts': 'कार्रवाई रसीदें',
+        
+        // Error Handling
+        'friendly_error': 'कुछ गलत हो गया',
+        'retry_operation': 'ऑपरेशन पुनः प्रयास करें',
+        'auto_save_enabled': 'स्वचालित सहेजना सक्षम',
+        'last_saved': 'अंतिम सहेजा गया',
+        'recovery_available': 'पुनर्प्राप्ति उपलब्ध',
+        
+        // Chat & AI
+        'ai_assistant_title': 'एआई खेती सहायक',
+        'send_message': 'संदेश भेजें',
+        'type_message': 'अपना संदेश टाइप करें...',
+        'chat_loading': 'एआई सोच रहा है...',
+        'voice_input': 'आवाज इनपुट',
+        'text_to_speech': 'टेक्स्ट से स्पीच'
       },
+      
       kn: {
+        // Greetings
         'greeting_morning': 'ಶುಭೋದಯ',
         'greeting_afternoon': 'ಶುಭ ದಿನ',
         'greeting_evening': 'ಶುಭ ಸಂಜೆ',
         'greeting_night': 'ಶುಭ ರಾತ್ರಿ',
-        'current_season': 'ಪ್ರಸ್ತುತ ಋತು',
+        
+        // Dashboard Sections
+        'dashboard_title': 'ಫಾರ್ಮ್ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
         'step_progress': 'ಹಂತ ಪ್ರಗತಿ',
         'farm_performance': 'ಫಾರ್ಮ್ ಕಾರ್ಯಕ್ಷಮತೆ',
         'live_crop_status': 'ಲೈವ್ ಬೆಳೆ ಸ್ಥಿತಿ',
-        'quick_actions': 'ತ್ವರಿತ ಕ್ರಿಯೆಗಳು'
+        'quick_actions': 'ತ್ವರಿತ ಕ್ರಿಯೆಗಳು',
+        'critical_alerts': 'ವಿಮರ್ಶಾತ್ಮಕ ಎಚ್ಚರಿಕೆಗಳು',
+        'weather_intelligence': 'ಹವಾಮಾನ ಬುದ್ಧಿಮತ್ತೆ',
+        'market_intelligence': 'ಮಾರುಕಟ್ಟೆ ಬುದ್ಧಿಮತ್ತೆ',
+        'ai_features': 'ಎಐ ವೈಶಿಷ್ಟ್ಯಗಳು',
+        
+        // Step Names
+        'step_1': 'ವಿಮರ್ಶಾತ್ಮಕ ಎಚ್ಚರಿಕೆಗಳನ್ನು ಪರಿಶೀಲಿಸಿ',
+        'step_2': 'ಫಾರ್ಮ್ ಕಾರ್ಯಕ್ಷಮತೆಯನ್ನು ಪರಿಶೀಲಿಸಿ',
+        'step_3': 'ಬೆಳೆಗಳು ಮತ್ತು ಹವಾಮಾನವನ್ನು ಮೇಲ್ವಿಚಾರಣೆ ಮಾಡಿ',
+        'step_4': 'ಕ್ರಿಯೆ ಮಾಡಿ',
+        
+        // Common Actions
+        'show_help': 'ಸಹಾಯ ತೋರಿಸಿ',
+        'hide_help': 'ಸಹಾಯ ಮರೆಮಾಡಿ',
+        'next_step': 'ಮುಂದಿನ ಹಂತ',
+        'previous_step': 'ಹಿಂದಿನ ಹಂತ',
+        'start_over': 'ಮತ್ತೆ ಪ್ರಾರಂಭಿಸಿ',
+        'dashboard_complete': 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಪೂರ್ಣ!',
+        
+        // Metrics & Data
+        'farm_efficiency': 'ಫಾರ್ಮ್ ದಕ್ಷತೆ',
+        'monthly_income': 'ಮಾಸಿಕ ಆದಾಯ',
+        'monthly_expenses': 'ಮಾಸಿಕ ವೆಚ್ಚಗಳು',
+        'monthly_profit': 'ಮಾಸಿಕ ಲಾಭ',
+        'active_crops': 'ಸಕ್ರಿಯ ಬೆಳೆಗಳು',
+        'weather_forecast': 'ಹವಾಮಾನ ಮುನ್ಸೂಚನೆ',
+        'market_trends': 'ಮಾರುಕಟ್ಟೆ ಪ್ರವೃತ್ತಿಗಳು',
+        'crop_health': 'ಬೆಳೆ ಆರೋಗ್ಯ',
+        
+        // Status & Alerts
+        'healthy': 'ಆರೋಗ್ಯಕರ',
+        'warning': 'ಎಚ್ಚರಿಕೆ',
+        'critical': 'ವಿಮರ್ಶಾತ್ಮಕ',
+        'attention_required': 'ಗಮನ ಬೇಕು',
+        'no_alerts': 'ಯಾವುದೇ ವಿಮರ್ಶಾತ್ಮಕ ಎಚ್ಚರಿಕೆಗಳಿಲ್ಲ',
+        
+        // Quick Actions
+        'scan_crop': 'ಬೆಳೆ ಸ್ಕ್ಯಾನ್ ಮಾಡಿ',
+        'check_weather': 'ಹವಾಮಾನ ಪರಿಶೀಲಿಸಿ',
+        'view_market': 'ಮಾರುಕಟ್ಟೆ ವೀಕ್ಷಿಸಿ',
+        'ai_assistant': 'ಎಐ ಸಹಾಯಕ',
+        'government_schemes': 'ಸರ್ಕಾರಿ ಯೋಜನೆಗಳು',
+        'profit_calculator': 'ಲಾಭ ಕ್ಯಾಲ್ಕುಲೇಟರ್',
+        'crop_calendar': 'ಬೆಳೆ ಕ್ಯಾಲೆಂಡರ್',
+        'carbon_credits': 'ಕಾರ್ಬನ್ ಕ್ರೆಡಿಟ್‌ಗಳು',
+        
+        // Performance & Analytics
+        'performance_overview': 'ಕಾರ್ಯಕ್ಷಮತೆ ಅವಲೋಕನ',
+        'efficiency_score': 'ದಕ್ಷತೆ ಸ್ಕೋರ್',
+        'revenue_trends': 'ರೆವೆನ್ಯೂ ಪ್ರವೃತ್ತಿಗಳು',
+        'expense_breakdown': 'ವೆಚ್ಚ ವಿಭಜನೆ',
+        'crop_distribution': 'ಬೆಳೆ ವಿತರಣೆ',
+        'seasonal_analysis': 'ಋತುಮಾನ ವಿಶ್ಲೇಷಣೆ',
+        
+        // Weather & Climate
+        'current_weather': 'ಪ್ರಸ್ತುತ ಹವಾಮಾನ',
+        'temperature': 'ತಾಪಮಾನ',
+        'humidity': 'ಆರ್ದ್ರತೆ',
+        'wind_speed': 'ಗಾಳಿಯ ವೇಗ',
+        'precipitation': 'ಮಳೆ',
+        'uv_index': 'ಯುವಿ ಸೂಚ್ಯಂಕ',
+        
+        // Market & Prices
+        'current_prices': 'ಪ್ರಸ್ತುತ ಬೆಲೆಗಳು',
+        'price_trends': 'ಬೆಲೆ ಪ್ರವೃತ್ತಿಗಳು',
+        'market_analysis': 'ಮಾರುಕಟ್ಟೆ ವಿಶ್ಲೇಷಣೆ',
+        'demand_forecast': 'ಬೇಡಿಕೆ ಮುನ್ಸೂಚನೆ',
+        'supply_status': 'ಸರಬರಾಜು ಸ್ಥಿತಿ',
+        
+        // AI & Intelligence
+        'smart_recommendations': 'ಸ್ಮಾರ್ಟ್ ಶಿಫಾರಸುಗಳು',
+        'predictive_analytics': 'ಭವಿಷ್ಯವಾಣಿ ವಿಶ್ಲೇಷಣೆ',
+        'crop_optimization': 'ಬೆಳೆ ಅತ್ಯುತ್ತಮೀಕರಣ',
+        'risk_assessment': 'ಅಪಾಯ ಮೌಲ್ಯಮಾಪನ',
+        
+        // Tutorial & Help
+        'tutorial_title': 'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಟ್ಯುಟೋರಿಯಲ್',
+        'step_by_step_guide': 'ಹಂತ-ಹಂತದ ಪ್ರಗತಿ ಮಾರ್ಗದರ್ಶಿ',
+        'helpful_tutorial': 'ಸಹಾಯಕ ಟ್ಯುಟೋರಿಯಲ್',
+        'voice_commands': 'ಧ್ವನಿ ಆದೇಶಗಳು',
+        'navigation_help': 'ನ್ಯಾವಿಗೇಷನ್ ಸಹಾಯ',
+        'chat_help': 'ಚಾಟ್ ಸಹಾಯ',
+        'content_help': 'ವಿಷಯ ಸಹಾಯ',
+        'language_help': 'ಭಾಷೆ ಸಹಾಯ',
+        
+        // Network & Performance
+        'network_status': 'ನೆಟ್‌ವರ್ಕ್ ಸ್ಥಿತಿ',
+        'performance_mode': 'ಕಾರ್ಯಕ್ಷಮತೆ ಮೋಡ್',
+        'offline_mode': 'ಆಫ್‌ಲೈನ್ ಮೋಡ್',
+        'cached_data': 'ಕ್ಯಾಶ್ ಡೇಟಾ',
+        'connection_type': 'ಸಂಪರ್ಕ ಪ್ರಕಾರ',
+        'loading_performance': 'ಲೋಡಿಂಗ್ ಕಾರ್ಯಕ್ಷಮತೆ',
+        
+        // Confirmation & Actions
+        'confirm_action': 'ಕ್ರಿಯೆಯನ್ನು ದೃಢೀಕರಿಸಿ',
+        'action_completed': 'ಕ್ರಿಯೆ ಪೂರ್ಣಗೊಂಡಿದೆ',
+        'undo_available': 'ರದ್ದುಮಾಡಲು ಲಭ್ಯವಿದೆ',
+        'recent_actions': 'ಇತ್ತೀಚಿನ ಕ್ರಿಯೆಗಳು',
+        'action_receipts': 'ಕ್ರಿಯೆ ರಸೀದಿಗಳು',
+        
+        // Error Handling
+        'friendly_error': 'ಏನೋ ತಪ್ಪಾಗಿದೆ',
+        'retry_operation': 'ಅಭಿಯಾನವನ್ನು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ',
+        'auto_save_enabled': 'ಸ್ವಯಂ-ಉಳಿಸುವಿಕೆ ಸಕ್ರಿಯಗೊಂಡಿದೆ',
+        'last_saved': 'ಕೊನೆಯದಾಗಿ ಉಳಿಸಲಾಗಿದೆ',
+        'recovery_available': 'ಪುನಃಸ್ಥಾಪನೆ ಲಭ್ಯವಿದೆ',
+        
+        // Chat & AI
+        'ai_assistant_title': 'ಎಐ ಕೃಷಿ ಸಹಾಯಕ',
+        'send_message': 'ಸಂದೇಶ ಕಳುಹಿಸಿ',
+        'type_message': 'ನಿಮ್ಮ ಸಂದೇಶವನ್ನು ಟೈಪ್ ಮಾಡಿ...',
+        'chat_loading': 'ಎಐ ಯೋಚಿಸುತ್ತಿದೆ...',
+        'voice_input': 'ಧ್ವನಿ ಇನ್‌ಪುಟ್',
+        'text_to_speech': 'ಟೆಕ್ಸ್ಟ್‌ನಿಂದ ಸ್ಪೀಚ್'
       },
+      
       ta: {
+        // Greetings
         'greeting_morning': 'காலை வணக்கம்',
         'greeting_afternoon': 'மதிய வணக்கம்',
         'greeting_evening': 'மாலை வணக்கம்',
         'greeting_night': 'இரவு வணக்கம்',
-        'current_season': 'தற்போதைய பருவம்',
+        
+        // Dashboard Sections
+        'dashboard_title': 'பண்ணை டாஷ்போர்டு',
         'step_progress': 'படி முன்னேற்றம்',
         'farm_performance': 'பண்ணை செயல்திறன்',
         'live_crop_status': 'நேரலை பயிர் நிலை',
-        'quick_actions': 'விரைவு செயல்கள்'
+        'quick_actions': 'விரைவு செயல்கள்',
+        'critical_alerts': 'முக்கிய எச்சரிக்கைகள்',
+        'weather_intelligence': 'வானிலை நுண்ணறிவு',
+        'market_intelligence': 'சந்தை நுண்ணறிவு',
+        'ai_features': 'ஏஐ அம்சங்கள்',
+        
+        // Step Names
+        'step_1': 'முக்கிய எச்சரிக்கைகளை மதிப்பாய்வு செய்யவும்',
+        'step_2': 'பண்ணை செயல்திறனை சரிபார்க்கவும்',
+        'step_3': 'பயிர்கள் மற்றும் வானிலையை கண்காணிக்கவும்',
+        'step_4': 'நடவடிக்கை எடுக்கவும்',
+        
+        // Common Actions
+        'show_help': 'உதவியைக் காட்டு',
+        'hide_help': 'உதவியை மறைக்கு',
+        'next_step': 'அடுத்த படி',
+        'previous_step': 'முந்தைய படி',
+        'start_over': 'மீண்டும் தொடங்கு',
+        'dashboard_complete': 'டாஷ்போர்டு முடிந்தது!',
+        
+        // Metrics & Data
+        'farm_efficiency': 'பண்ணை திறன்',
+        'monthly_income': 'மாதாந்திர வருமானம்',
+        'monthly_expenses': 'மாதாந்திர செலவுகள்',
+        'monthly_profit': 'மாதாந்திர லாபம்',
+        'active_crops': 'செயலில் உள்ள பயிர்கள்',
+        'weather_forecast': 'வானிலை முன்னறிவிப்பு',
+        'market_trends': 'சந்தை போக்குகள்',
+        'crop_health': 'பயிர் ஆரோக்கியம்',
+        
+        // Status & Alerts
+        'healthy': 'ஆரோக்கியமான',
+        'warning': 'எச்சரிக்கை',
+        'critical': 'முக்கியமான',
+        'attention_required': 'கவனம் தேவை',
+        'no_alerts': 'முக்கிய எச்சரிக்கைகள் எதுவும் இல்லை',
+        
+        // Quick Actions
+        'scan_crop': 'பயிரை ஸ்கேன் செய்யவும்',
+        'check_weather': 'வானிலையை சரிபார்க்கவும்',
+        'view_market': 'சந்தையை பார்க்கவும்',
+        'ai_assistant': 'ஏஐ உதவியாளர்',
+        'government_schemes': 'அரசு திட்டங்கள்',
+        'profit_calculator': 'லாப கணிப்பான்',
+        'crop_calendar': 'பயிர் நாட்காட்டி',
+        'carbon_credits': 'கார்பன் கடன்',
+        
+        // Performance & Analytics
+        'performance_overview': 'செயல்திறன் கண்ணோட்டம்',
+        'efficiency_score': 'திறன் மதிப்பெண்',
+        'revenue_trends': 'வருவாய் போக்குகள்',
+        'expense_breakdown': 'செலவு பிரிப்பு',
+        'crop_distribution': 'பயிர் பரம்பல்',
+        'seasonal_analysis': 'பருவகால பகுப்பாய்வு',
+        
+        // Weather & Climate
+        'current_weather': 'தற்போதைய வானிலை',
+        'temperature': 'வெப்பநிலை',
+        'humidity': 'ஈரப்பதம்',
+        'wind_speed': 'காற்றின் வேகம்',
+        'precipitation': 'மழைப்பொழிவு',
+        'uv_index': 'யூவி குறியீடு',
+        
+        // Market & Prices
+        'current_prices': 'தற்போதைய விலைகள்',
+        'price_trends': 'விலை போக்குகள்',
+        'market_analysis': 'சந்தை பகுப்பாய்வு',
+        'demand_forecast': 'தேவை முன்னறிவிப்பு',
+        'supply_status': 'வழங்கல் நிலை',
+        
+        // AI & Intelligence
+        'smart_recommendations': 'ஸ்மார்ட் பரிந்துரைகள்',
+        'predictive_analytics': 'முன்கணிப்பு பகுப்பாய்வு',
+        'crop_optimization': 'பயிர் உகந்தமயமாக்கல்',
+        'risk_assessment': 'ஆபத்து மதிப்பீடு',
+        
+        // Tutorial & Help
+        'tutorial_title': 'டாஷ்போர்டு பயிற்சி',
+        'step_by_step_guide': 'படிப்படியான முன்னேற்ற வழிகாட்டி',
+        'helpful_tutorial': 'உதவியான பயிற்சி',
+        'voice_commands': 'குரல் கட்டளைகள்',
+        'navigation_help': 'வழிசெலுத்தல் உதவி',
+        'chat_help': 'அரட்டை உதவி',
+        'content_help': 'உள்ளடக்க உதவி',
+        'language_help': 'மொழி உதவி',
+        
+        // Network & Performance
+        'network_status': 'பிணைய நிலை',
+        'performance_mode': 'செயல்திறன் பயன்முறை',
+        'offline_mode': 'ஆஃப்லைன் பயன்முறை',
+        'cached_data': 'கேச் தரவு',
+        'connection_type': 'இணைப்பு வகை',
+        'loading_performance': 'ஏற்றும் செயல்திறன்',
+        
+        // Confirmation & Actions
+        'confirm_action': 'நடவடிக்கையை உறுதிப்படுத்து',
+        'action_completed': 'நடவடிக்கை முடிந்தது',
+        'undo_available': 'செயல்தவிர்க்க கிடைக்கிறது',
+        'recent_actions': 'சமீபத்திய நடவடிக்கைகள்',
+        'action_receipts': 'நடவடிக்கை ரசீதுகள்',
+        
+        // Error Handling
+        'friendly_error': 'ஏதோ தவறு நடந்தது',
+        'retry_operation': 'செயல்பாட்டை மீண்டும் முயற்சிக்கவும்',
+        'auto_save_enabled': 'தானாக சேமிப்பு இயக்கப்பட்டது',
+        'last_saved': 'கடைசியாக சேமிக்கப்பட்டது',
+        'recovery_available': 'மீட்டெடுப்பு கிடைக்கிறது',
+        
+        // Chat & AI
+        'ai_assistant_title': 'ஏஐ விவசாய உதவியாளர்',
+        'send_message': 'செய்தியை அனுப்பு',
+        'type_message': 'உங்கள் செய்தியை தட்டச்சு செய்யவும்...',
+        'chat_loading': 'ஏஐ சிந்திக்கிறது...',
+        'voice_input': 'குரல் உள்ளீடு',
+        'text_to_speech': 'உரைக்கு பேச்சு'
       },
+      
       te: {
+        // Greetings
         'greeting_morning': 'శుభోదయం',
         'greeting_afternoon': 'శుభ మద్యాహ్నం',
         'greeting_evening': 'శుభ సాయంత్రం',
         'greeting_night': 'శుభ రాత్రి',
-        'current_season': 'ప్రస్తుత ఋతువు',
+        
+        // Dashboard Sections
+        'dashboard_title': 'పొలం డాష్‌బోర్డ్',
         'step_progress': 'దశ ప్రగతి',
         'farm_performance': 'పొలం పనితీరు',
         'live_crop_status': 'లైవ్ పంట స్థితి',
-        'quick_actions': 'త్వరిత చర్యలు'
+        'quick_actions': 'త్వరిత చర్యలు',
+        'critical_alerts': 'విమర్శనాత్మక హెచ్చరికలు',
+        'weather_intelligence': 'వాతావరణ తెలివి',
+        'market_intelligence': 'మార్కెట్ తెలివి',
+        'ai_features': 'ఏఐ లక్షణాలు',
+        
+        // Step Names
+        'step_1': 'విమర్శనాత్మక హెచ్చరికలను సమీక్షించండి',
+        'step_2': 'పొలం పనితీరును తనిఖీ చేయండి',
+        'step_3': 'పంటలు మరియు వాతావరణాన్ని పర్యవేక్షించండి',
+        'step_4': 'చర్య తీసుకోండి',
+        
+        // Common Actions
+        'show_help': 'సహాయం చూపించు',
+        'hide_help': 'సహాయం దాచు',
+        'next_step': 'తదుపరి దశ',
+        'previous_step': 'మునుపటి దశ',
+        'start_over': 'మళ్ళీ ప్రారంభించు',
+        'dashboard_complete': 'డాష్‌బోర్డ్ పూర్తయింది!',
+        
+        // Metrics & Data
+        'farm_efficiency': 'పొలం సమర్థత',
+        'monthly_income': 'నెలవారీ ఆదాయం',
+        'monthly_expenses': 'నెలవారీ ఖర్చులు',
+        'monthly_profit': 'నెలవారీ లాభం',
+        'active_crops': 'క్రియాశీల పంటలు',
+        'weather_forecast': 'వాతావరణ అంచనా',
+        'market_trends': 'మార్కెట్ ధోరణులు',
+        'crop_health': 'పంట ఆరోగ్యం',
+        
+        // Status & Alerts
+        'healthy': 'ఆరోగ్యకరమైన',
+        'warning': 'హెచ్చరిక',
+        'critical': 'విమర్శనాత్మక',
+        'attention_required': 'శ్రద్ధ అవసరం',
+        'no_alerts': 'విమర్శనాత్మక హెచ్చరికలు లేవు',
+        
+        // Quick Actions
+        'scan_crop': 'పంటను స్కాన్ చేయండి',
+        'check_weather': 'వాతావరణాన్ని తనిఖీ చేయండి',
+        'view_market': 'మార్కెట్‌ను చూడండి',
+        'ai_assistant': 'ఏఐ సహాయకుడు',
+        'government_schemes': 'ప్రభుత్వ పథకాలు',
+        'profit_calculator': 'లాభ కాలిక్యులేటర్',
+        'crop_calendar': 'పంట క్యాలెండర్',
+        'carbon_credits': 'కార్బన్ క్రెడిట్‌లు',
+        
+        // Performance & Analytics
+        'performance_overview': 'పనితీరు అవలోకనం',
+        'efficiency_score': 'సమర్థత స్కోర్',
+        'revenue_trends': 'రెవెన్యూ ధోరణులు',
+        'expense_breakdown': 'ఖర్చు విభజన',
+        'crop_distribution': 'పంట పంపిణీ',
+        'seasonal_analysis': 'ఋతుపవయస విశ్లేషణ',
+        
+        // Weather & Climate
+        'current_weather': 'ప్రస్తుత వాతావరణం',
+        'temperature': 'ఉష్ణోగ్రత',
+        'humidity': 'తేమ',
+        'wind_speed': 'గాలి వేగం',
+        'precipitation': 'వర్షపాతం',
+        'uv_index': 'యువి సూచిక',
+        
+        // Market & Prices
+        'current_prices': 'ప్రస్తుత ధరలు',
+        'price_trends': 'ధర ధోరణులు',
+        'market_analysis': 'మార్కెట్ విశ్లేషణ',
+        'demand_forecast': 'డిమాండ్ అంచనా',
+        'supply_status': 'సరఫరా స్థితి',
+        
+        // AI & Intelligence
+        'smart_recommendations': 'స్మార్ట్ సిఫార్సులు',
+        'predictive_analytics': 'అంచనా విశ్లేషణ',
+        'crop_optimization': 'పంట ఆప్టిమైజేషన్',
+        'risk_assessment': 'రిస్క్ అంచనా',
+        
+        // Tutorial & Help
+        'tutorial_title': 'డాష్‌బోర్డ్ ట్యుటోరియల్',
+        'step_by_step_guide': 'దశ-దశగా ప్రగతి మార్గదర్శకం',
+        'helpful_tutorial': 'సహాయక ట్యుటోరియల్',
+        'voice_commands': 'వాయిస్ ఆదేశాలు',
+        'navigation_help': 'నావిగేషన్ సహాయం',
+        'chat_help': 'చాట్ సహాయం',
+        'content_help': 'కంటెంట్ సహాయం',
+        'language_help': 'భాష సహాయం',
+        
+        // Network & Performance
+        'network_status': 'నెట్‌వర్క్ స్థితి',
+        'performance_mode': 'పనితీరు మోడ్',
+        'offline_mode': 'ఆఫ్‌లైన్ మోడ్',
+        'cached_data': 'క్యాష్ డేటా',
+        'connection_type': 'కనెక్షన్ రకం',
+        'loading_performance': 'లోడింగ్ పనితీరు',
+        
+        // Confirmation & Actions
+        'confirm_action': 'చర్యను నిర్ధారించండి',
+        'action_completed': 'చర్య పూర్తయింది',
+        'undo_available': 'రద్దు చేయడానికి అందుబాటులో ఉంది',
+        'recent_actions': 'ఇటీవలి చర్యలు',
+        'action_receipts': 'చర్య రసీదులు',
+        
+        // Error Handling
+        'friendly_error': 'ఏదో తప్పు జరిగింది',
+        'retry_operation': 'ఆపరేషన్‌ను మళ్ళీ ప్రయత్నించండి',
+        'auto_save_enabled': 'ఆటో-సేవ్ ప్రారంభించబడింది',
+        'last_saved': 'చివరిగా సేవ్ చేయబడింది',
+        'recovery_available': 'రికవరీ అందుబాటులో ఉంది',
+        
+        // Chat & AI
+        'ai_assistant_title': 'ఏఐ వ్యవసాయ సహాయకుడు',
+        'send_message': 'సందేశాన్ని పంపండి',
+        'type_message': 'మీ సందేశాన్ని టైప్ చేయండి...',
+        'chat_loading': 'ఏఐ ఆలోచిస్తోంది...',
+        'voice_input': 'వాయిస్ ఇన్‌పుట్',
+        'text_to_speech': 'టెక్స్ట్‌నుండి స్పీచ్'
       }
     };
     
@@ -1046,13 +1635,13 @@ const Dashboard: React.FC = () => {
               <h1 className="text-3xl font-bold text-gray-900">
                 {greeting}, {currentUser?.displayName || 'Farmer'}
             </h1>
-              <p className="text-gray-600 text-lg mt-1">{season.description}</p>
+              <p className="text-gray-600 text-lg mt-1">{t('current_season')}: {season.description}</p>
           </div>
                          <div className="text-right">
                <div className="bg-gray-100 rounded-lg px-4 py-3">
-                 <div className="text-sm text-gray-600 mb-1">Current Season</div>
+                 <div className="text-sm text-gray-600 mb-1">{t('current_season')}</div>
                  <div className="font-semibold text-gray-900">{season.name}</div>
-                 <div className="text-xs text-gray-500">{new Date().toLocaleDateString()}</div>
+                 <div className="text-xs text-gray-500">{formatLocalDateTime(new Date())}</div>
                </div>
                
                {/* Auto-save Status */}
@@ -1061,7 +1650,7 @@ const Dashboard: React.FC = () => {
                    <div className="flex items-center space-x-2">
                      <div className={`w-2 h-2 rounded-full ${autoSaveEnabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                      <span className="text-xs text-blue-700">
-                       {autoSaveEnabled ? 'Auto-save ON' : 'Auto-save OFF'}
+                       {autoSaveEnabled ? t('auto_save_enabled') : 'Auto-save OFF'}
                      </span>
                    </div>
                    <button
@@ -1189,14 +1778,14 @@ const Dashboard: React.FC = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
                   <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                  <h3 className="font-semibold text-red-800">Urgent Action Required</h3>
+                  <h3 className="font-semibold text-red-800">{t('attention_required')}</h3>
                 </div>
                 {currentStep === 1 && (
                   <button
                     onClick={() => setCurrentStep(2)}
                     className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
                   >
-                    Next: Check Performance →
+                    {t('next_step')}: {t('step_2')} →
                   </button>
                 )}
               </div>
@@ -1241,12 +1830,12 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-blue-800">Step {currentStep} of 4:</span>
+                <span className="text-sm font-medium text-blue-800">{t('step_progress')} {currentStep} of 4:</span>
                 <span className="text-sm text-blue-700">
-                  {currentStep === 1 && 'Review Critical Alerts'}
-                  {currentStep === 2 && 'Check Farm Performance'}
-                  {currentStep === 3 && 'Monitor Crops & Weather'}
-                  {currentStep === 4 && 'Take Action'}
+                  {currentStep === 1 && t('step_1')}
+                  {currentStep === 2 && t('step_2')}
+                  {currentStep === 3 && t('step_3')}
+                  {currentStep === 4 && t('step_4')}
                 </span>
               </div>
               <div className="flex space-x-1">
@@ -1339,7 +1928,7 @@ const Dashboard: React.FC = () => {
             <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto">
               <div className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-gray-900">Dashboard Guide</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{t('tutorial_title')}</h3>
             <button 
                     onClick={() => setShowTutorial(false)}
                     className="text-gray-400 hover:text-gray-600"
@@ -1352,19 +1941,19 @@ const Dashboard: React.FC = () => {
                 
                 <div className="space-y-4 text-sm text-gray-700">
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Step 1: Review Critical Alerts</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">Step 1: {t('step_1')}</h4>
                     <p>Start here to see urgent actions needed for your farm. These are time-sensitive and require immediate attention.</p>
             </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Step 2: Check Farm Performance</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">Step 2: {t('step_2')}</h4>
                     <p>Review your farm's efficiency, profits, soil health, and carbon credits. Green numbers mean good performance.</p>
           </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Step 3: Monitor Crops & Weather</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">Step 3: {t('step_3')}</h4>
                     <p>Check your crop status and weather forecast to plan your farming activities.</p>
         </div>
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Step 4: Take Action</h4>
+                    <h4 className="font-semibold text-gray-900 mb-2">Step 4: {t('step_4')}</h4>
                     <p>Use the quick actions to scan crops, check prices, or access other tools.</p>
       </div>
 
@@ -1374,12 +1963,12 @@ const Dashboard: React.FC = () => {
                    
                    {/* Voice Commands Help */}
                    <div className="bg-purple-50 p-3 rounded border-l-4 border-purple-400">
-                     <h4 className="font-semibold text-purple-900 mb-2">Voice Commands</h4>
+                     <h4 className="font-semibold text-purple-900 mb-2">{t('voice_commands')}</h4>
                      <div className="text-xs text-purple-800 space-y-1">
-                       <p><strong>Navigation:</strong> "Next step", "Previous step", "Go to step 2"</p>
-                       <p><strong>Chat:</strong> "Open chat", "Close chat"</p>
-                       <p><strong>Content:</strong> "Read dashboard", "Help", "Tutorial"</p>
-                       <p><strong>Language:</strong> Use the language selector to change voice language</p>
+                       <p><strong>{t('navigation_help')}:</strong> "Next step", "Previous step", "Go to step 2"</p>
+                       <p><strong>{t('chat_help')}:</strong> "Open chat", "Close chat"</p>
+                       <p><strong>{t('content_help')}:</strong> "Read dashboard", "Help", "Tutorial"</p>
+                       <p><strong>{t('language_help')}:</strong> Use the language selector to change voice language</p>
                      </div>
                    </div>
                  </div>
@@ -1399,7 +1988,7 @@ const Dashboard: React.FC = () => {
                   </svg>
                 </div>
             <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Confirm Action</h3>
+                  <h3 className="text-lg font-semibold text-gray-900">{t('confirm_action')}</h3>
                   <p className="text-sm text-gray-600">{confirmAction.type}</p>
                 </div>
               </div>
@@ -1525,7 +2114,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Farm Performance Overview</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t('performance_overview')}</h2>
               <p className="text-sm text-gray-600 mt-1">Key metrics showing how your farm is performing this month</p>
             </div>
             {currentStep === 2 && (
@@ -1533,7 +2122,7 @@ const Dashboard: React.FC = () => {
                 onClick={() => setCurrentStep(3)}
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
               >
-                Next: Monitor Crops →
+                {t('next_step')}: {t('step_3')} →
               </button>
             )}
           </div>
@@ -1543,7 +2132,7 @@ const Dashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <h3 className="text-gray-600 text-sm font-medium">Farm Efficiency</h3>
+                  <h3 className="text-gray-600 text-sm font-medium">{t('farm_efficiency')}</h3>
                   <button 
                     className="w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center text-xs text-gray-600 hover:bg-gray-300"
                     title="Farm efficiency measures how well you're using resources like water, fertilizer, and labor compared to similar farms in your area. Higher percentages mean better resource management."
@@ -1571,7 +2160,7 @@ const Dashboard: React.FC = () => {
           <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-gray-600 text-sm font-medium">Monthly Profit</h3>
+                <h3 className="text-gray-600 text-sm font-medium">{t('monthly_profit')}</h3>
                 <p className="text-3xl font-bold text-gray-900">₹{(farmMetrics?.monthlyIncome! - farmMetrics?.monthlyExpenses!).toLocaleString()}</p>
                 <p className="text-green-600 text-sm">+23% from last month</p>
               </div>
@@ -1589,7 +2178,7 @@ const Dashboard: React.FC = () => {
           <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-gray-600 text-sm font-medium">Soil Health</h3>
+                <h3 className="text-gray-600 text-sm font-medium">{t('crop_health')}</h3>
                 <p className="text-3xl font-bold text-gray-900">{farmMetrics?.soilHealth}%</p>
                 <p className="text-green-600 text-sm">Above regional avg</p>
               </div>
@@ -1625,7 +2214,7 @@ const Dashboard: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">Live Crop Status</h2>
+              <h2 className="text-2xl font-bold text-gray-900">{t('live_crop_status')}</h2>
               <p className="text-sm text-gray-600 mt-1">Monitor your crops in real-time and identify any issues early</p>
             </div>
             <div className="text-right">
@@ -1635,7 +2224,7 @@ const Dashboard: React.FC = () => {
                   onClick={() => setCurrentStep(4)}
                   className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
                 >
-                  Next: Take Action →
+                                      {t('next_step')}: {t('step_4')} →
                 </button>
               )}
               </div>
@@ -1859,27 +2448,27 @@ const Dashboard: React.FC = () => {
         {/* Enhanced Weather Dashboard */}
         {weatherData && (
           <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-xl font-bold text-gray-900 mb-6">Agricultural Weather Intelligence</h3>
+            <h3 className="text-xl font-bold text-gray-900 mb-6">{t('weather_intelligence')}</h3>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Current Conditions */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold mb-3">Current Conditions</h4>
+                <h4 className="font-semibold mb-3">{t('current_weather')}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Temperature:</span>
+                    <span>{t('temperature')}:</span>
                     <span className="font-bold">{weatherData.current.temperature}°C</span>
           </div>
                   <div className="flex justify-between">
-                    <span>Humidity:</span>
+                    <span>{t('humidity')}:</span>
                     <span className="font-bold">{weatherData.current.humidity}%</span>
         </div>
                   <div className="flex justify-between">
-                    <span>Wind Speed:</span>
+                    <span>{t('wind_speed')}:</span>
                     <span className="font-bold">{weatherData.current.windSpeed} km/h</span>
             </div>
                   <div className="flex justify-between">
-                    <span>UV Index:</span>
+                    <span>{t('uv_index')}:</span>
                     <span className="font-bold">{weatherData.current.uvIndex}</span>
           </div>
           </div>
@@ -1887,7 +2476,7 @@ const Dashboard: React.FC = () => {
 
               {/* 5-Day Forecast */}
               <div className="lg:col-span-2">
-                <h4 className="font-semibold mb-3">5-Day Agricultural Forecast</h4>
+                <h4 className="font-semibold mb-3">{t('weather_forecast')}</h4>
                 <div className="grid grid-cols-5 gap-2 text-center text-sm">
                   {weatherData.forecast.map((day: any, index: number) => (
                     <div key={index} className="bg-gray-50 rounded p-3">
@@ -1918,17 +2507,17 @@ const Dashboard: React.FC = () => {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold text-gray-900">Quick Actions</h3>
+              <h3 className="text-xl font-bold text-gray-900">{t('quick_actions')}</h3>
               <p className="text-sm text-gray-600 mt-1">Take action on your farm with these essential tools</p>
             </div>
             {currentStep === 4 && (
               <div className="text-center">
-                <div className="text-sm text-green-600 font-medium mb-2">✓ Dashboard Complete!</div>
+                <div className="text-sm text-green-600 font-medium mb-2">✓ {t('dashboard_complete')}</div>
             <button 
                   onClick={() => setCurrentStep(1)}
                   className="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-700 transition-colors"
             >
-                  Start Over
+                  {t('start_over')}
               </button>
               </div>
             )}
@@ -1936,43 +2525,43 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                          {[
                { 
-                 label: 'Scan Crop', 
+                 label: t('scan_crop'), 
                  path: '/scan-crop', 
                  description: 'Take a photo to check crop health',
                  icon: '📱'
                },
               { 
-                label: 'Market Prices', 
+                label: t('view_market'), 
                 path: '/market', 
                 description: 'Check current crop prices',
                 icon: '💰'
               },
               { 
-                label: 'Weather', 
+                label: t('check_weather'), 
                 path: '/weather', 
                 description: 'View weather forecast',
                 icon: '🌤️'
               },
               { 
-                label: 'Schemes', 
+                label: t('government_schemes'), 
                 path: '/schemes', 
                 description: 'Find government schemes',
                 icon: '🏛️'
               },
               { 
-                label: 'Profit Calc', 
+                label: t('profit_calculator'), 
                 path: '/profit-calculator', 
                 description: 'Calculate farm profits',
                 icon: '🧮'
               },
                              { 
-                 label: 'Crop Calendar', 
+                 label: t('crop_calendar'), 
                  path: '/crop-calendar', 
                  description: 'Plan your crop schedule',
                  icon: '📅'
                },
                { 
-                 label: 'AI Assistant', 
+                 label: t('ai_assistant'), 
                  path: '#', 
                  description: 'Chat with AI farming expert',
                  icon: '🤖',
@@ -2004,7 +2593,7 @@ const Dashboard: React.FC = () => {
          <div className="bg-white rounded-lg border border-gray-200 p-6">
            <div className="flex items-center justify-between mb-4">
              <div>
-               <h3 className="text-xl font-bold text-gray-900">Action Receipts</h3>
+               <h3 className="text-xl font-bold text-gray-900">{t('action_receipts')}</h3>
                <p className="text-sm text-gray-600 mt-1">Detailed record of all your dashboard activities</p>
               </div>
           <button
@@ -2015,7 +2604,7 @@ const Dashboard: React.FC = () => {
                }}
                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
              >
-               Export Receipts
+               Export {t('action_receipts')}
           </button>
             </div>
             
@@ -2025,7 +2614,7 @@ const Dashboard: React.FC = () => {
                  <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                  </svg>
-                 <p>No actions yet. Complete some tasks to see your receipts here.</p>
+                 <p>No {t('recent_actions').toLowerCase()} yet. Complete some tasks to see your receipts here.</p>
                </div>
              ) : (
                recentActions.map((action) => (
@@ -2055,7 +2644,7 @@ const Dashboard: React.FC = () => {
                          onClick={() => undoAction(action.id)}
                          className="text-xs text-blue-600 hover:text-blue-800 underline"
             >
-                         Undo Now
+                         {t('undo_available')}
               </button>
             </div>
                    )}
@@ -2070,7 +2659,7 @@ const Dashboard: React.FC = () => {
            <div className="bg-white rounded-lg border border-gray-200 p-6">
              <div className="flex items-center justify-between mb-4">
                <div>
-                 <h3 className="text-xl font-bold text-gray-900">Recent Actions</h3>
+                 <h3 className="text-xl font-bold text-gray-900">{t('recent_actions')}</h3>
                  <p className="text-sm text-gray-600 mt-1">Track your recent activities with undo options</p>
                </div>
           <button
@@ -2103,7 +2692,7 @@ const Dashboard: React.FC = () => {
                        onClick={() => undoAction(action.id)}
                        className="px-3 py-1 text-xs bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors"
                 >
-                       Undo
+                       {t('undo_available')}
                 </button>
                    )}
                 </div>
@@ -2141,7 +2730,7 @@ const Dashboard: React.FC = () => {
                    </svg>
                  </div>
                  <div>
-                   <h3 className="font-semibold">AI Farming Assistant</h3>
+                   <h3 className="font-semibold">{t('ai_assistant_title')}</h3>
                    <p className="text-xs text-blue-100">Powered by Gemini AI</p>
                  </div>
                </div>
@@ -2188,7 +2777,7 @@ const Dashboard: React.FC = () => {
                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
                          <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                        </div>
-                       <span className="text-sm text-gray-600">AI is thinking...</span>
+                       <span className="text-sm text-gray-600">{t('chat_loading')}</span>
                      </div>
                    </div>
                  </div>
@@ -2202,7 +2791,7 @@ const Dashboard: React.FC = () => {
                    type="text"
                    value={chatInput}
                    onChange={(e) => setChatInput(e.target.value)}
-                   placeholder="Ask about farming, crops, weather..."
+                   placeholder={t('type_message')}
                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                    disabled={chatLoading}
                  />

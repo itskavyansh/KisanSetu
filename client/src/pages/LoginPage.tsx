@@ -41,9 +41,6 @@ const LoginPage: React.FC = () => {
       <form onSubmit={handleSubmit} className="relative bg-white m-auto h-fit w-full max-w-sm overflow-hidden rounded-xl border border-gray-200 shadow-[0_10px_30px_rgba(0,0,0,0.15)]" style={{ backgroundColor: 'rgba(255,255,255,1)' }}>
         <div className="bg-white p-6 pb-4" style={{ backgroundColor: 'rgba(255,255,255,1)' }}>
           <div className="text-center">
-            <Link to="/" aria-label="go home" className="mx-auto block w-fit">
-              <img src={logo} alt="KisanSetu" className="h-10 w-10" />
-            </Link>
             <h1 className="mb-1 mt-3 text-xl font-semibold">Sign In to KisanSetu</h1>
             <p className="text-sm text-gray-600">Welcome back! Sign in to continue</p>
           </div>
