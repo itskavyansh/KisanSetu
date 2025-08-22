@@ -15,8 +15,9 @@ const cropHealthRoutes = require('./routes/cropHealth');
 const marketIntelligenceRoutes = require('./routes/marketIntelligence');
 const governmentSchemesRoutes = require('./routes/governmentSchemes');
 const carbonCreditsRoutes = require('./routes/carbonCredits');
-const voiceInterfaceRoutes = require('./routes/voiceInterface');
+// const voiceInterfaceRoutes = require('./routes/voiceInterface');
 const analyticsRoutes = require('./routes/analytics');
+const chatRoutes = require('./routes/chat');
 
 const app = express();
 
@@ -33,8 +34,12 @@ app.use('/api/crop-health', cropHealthRoutes);
 app.use('/api/market', marketIntelligenceRoutes);
 app.use('/api/schemes', governmentSchemesRoutes);
 app.use('/api/carbon-credits', carbonCreditsRoutes);
-app.use('/api/voice', voiceInterfaceRoutes);
+// Disable voice interface completely
+// if (process.env.ENABLE_VOICE_INTERFACE === 'true') {
+//   app.use('/api/voice', voiceInterfaceRoutes);
+// }
 app.use('/api/analytics', analyticsRoutes);
+app.use('/chat', chatRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

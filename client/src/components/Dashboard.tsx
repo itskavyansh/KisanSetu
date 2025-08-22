@@ -25,7 +25,7 @@ import {
 import { marketAPI } from '../services/marketService';
 import { governmentSchemesAPI } from '../services/governmentSchemesService';
 import { carbonCreditsAPI } from '../services/carbonCreditsService';
-import { voiceAPI } from '../services/voiceService';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -36,6 +36,11 @@ const Dashboard: React.FC = () => {
   const [voiceQuery, setVoiceQuery] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  // Chatbot state
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatHistory, setChatHistory] = useState<Array<{ sender: 'user' | 'ai', text: string }>>([]);
+  const [chatLoading, setChatLoading] = useState(false);
 
   const navigate = useNavigate();
   const { currentUser } = useAuth();
@@ -68,23 +73,37 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  // Send user query to Gemini AI backend (for top bar)
   const handleVoiceQuery = async () => {
     if (!voiceQuery.trim()) return;
-
     try {
       setIsLoading(true);
-      const response = await voiceAPI.chat({
-        query: voiceQuery,
-        language: 'english', // Default to English for now
-        userId: 'farmer001'
-      });
-
-      setAiResponse(response.data.response);
+      const response = await axios.post('/chat', { prompt: voiceQuery });
+      const aiText = response?.data?.response || 'Sorry, I could not generate a response.';
+      setAiResponse(aiText);
     } catch (error) {
-      console.error('Error processing voice query:', error);
+      console.error('Error processing AI query:', error);
       setAiResponse('Sorry, I encountered an error. Please try again.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  // Chatbot send message
+  const handleChatSend = async () => {
+    if (!chatInput.trim()) return;
+    setChatLoading(true);
+    setChatHistory((prev) => [...prev, { sender: 'user', text: chatInput }]);
+    try {
+      const response = await axios.post('/chat', { prompt: chatInput });
+      const aiText = response?.data?.response || 'Sorry, I encountered an error. Please try again.';
+      setChatHistory((prev) => [...prev, { sender: 'ai', text: aiText }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      setChatHistory((prev) => [...prev, { sender: 'ai', text: 'Sorry, I encountered an error. Please try again.' }]);
+    } finally {
+      setChatInput('');
+      setChatLoading(false);
     }
   };
 
@@ -118,7 +137,7 @@ const Dashboard: React.FC = () => {
         {/* Quick Actions */}
         <div className="flex gap-4 mb-6">
           <button className="bg-kisan-green text-white px-4 py-2 rounded-lg shadow hover:bg-green-600 transition">Add Crop</button>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition">Ask AI</button>
+          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-600 transition">Ask AI Assistant</button>
           <button className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg shadow hover:bg-gray-300 transition">Download Report</button>
         </div>
         {/* Search/Voice/Notifications/Settings */}
@@ -127,7 +146,7 @@ const Dashboard: React.FC = () => {
             <div className="relative">
               <input
                 type="text"
-                placeholder="Ask anything..."
+                placeholder="Ask the AI assistant anything..."
                 value={voiceQuery}
                 onChange={(e) => setVoiceQuery(e.target.value)}
                 className="w-full pl-4 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-kisan-green focus:border-transparent"
@@ -162,13 +181,13 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* AI Response Display */}
+      {/* AI Assistant Response Display */}
       {aiResponse && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mx-6 mt-4">
           <div className="flex items-start">
             <SparklesIcon className="w-6 h-6 text-blue-600 mr-3 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-blue-800">AI Assistant Response</h3>
+              <h3 className="font-semibold text-blue-800">Gemini AI Assistant Response</h3>
               <p className="text-blue-700 mt-1">{aiResponse}</p>
             </div>
           </div>
@@ -368,14 +387,59 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-      {/* Floating Microphone Icon */}
+      {/* Floating Chatbot Icon and Window */}
       <div className="fixed bottom-6 right-6 z-50">
-        <button 
-          onClick={() => setVoiceQuery('')}
-          className="w-14 h-14 bg-kisan-green hover:bg-green-600 rounded-full shadow-lg flex items-center justify-center transition-colors duration-200"
-        >
-          <MicrophoneIcon className="w-6 h-6 text-white" />
-        </button>
+        {!chatOpen && (
+          <button
+            onClick={() => setChatOpen(true)}
+            className="w-14 h-14 bg-blue-600 hover:bg-blue-700 rounded-full shadow-lg flex items-center justify-center transition-colors duration-200"
+            title="Open AI Chatbot"
+          >
+            <ChatBubbleLeftIcon className="w-7 h-7 text-white" />
+          </button>
+        )}
+        {chatOpen && (
+          <div className="w-80 h-96 bg-white rounded-xl shadow-2xl flex flex-col border border-blue-200">
+            <div className="flex items-center justify-between px-4 py-2 border-b border-blue-100 bg-blue-50 rounded-t-xl">
+              <span className="font-semibold text-blue-700">Gemini AI Chatbot</span>
+              <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-gray-700 text-lg">×</button>
+            </div>
+            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
+              {chatHistory.length === 0 && (
+                <div className="text-gray-400 text-sm text-center mt-8">Start a conversation with the AI assistant...</div>
+              )}
+              {chatHistory.map((msg, idx) => (
+                <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[70%] px-3 py-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'}`}>
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="p-3 border-t border-blue-100 bg-blue-50 rounded-b-xl">
+              <form
+                onSubmit={e => { e.preventDefault(); handleChatSend(); }}
+                className="flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={chatInput}
+                  onChange={e => setChatInput(e.target.value)}
+                  className="flex-1 px-3 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-400"
+                  placeholder="Type your message..."
+                  disabled={chatLoading}
+                />
+                <button
+                  type="submit"
+                  disabled={chatLoading || !chatInput.trim()}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                >
+                  Send
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
       </div>
     </div>
