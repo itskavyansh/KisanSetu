@@ -3,7 +3,7 @@ const express = require('express');
 const admin = require('../firebaseAdmin');
 const router = express.Router();
 
-// Register a new user
+// Register a new use
 router.post('/register', async (req, res) => {
   const { email, password, username } = req.body;
   try {
