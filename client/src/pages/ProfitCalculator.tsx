@@ -206,10 +206,10 @@ const ProfitCalculator: React.FC = () => {
   // Calculate profit analysis
   const calculateProfit = () => {
     const { seedsCost, fertilizerCost, laborCost, otherCosts, expectedYield, expectedPrice } = formData;
-    
-    const totalCost = seedsCost + fertilizerCost + laborCost + otherCosts;
-    const totalRevenue = expectedYield * expectedPrice;
-    const profit = totalRevenue - totalCost;
+
+  const totalCost = seedsCost + fertilizerCost + laborCost + otherCosts;
+  const totalRevenue = expectedYield * expectedPrice;
+  const profit = totalRevenue - totalCost;
     const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
     const roi = totalCost > 0 ? (profit / totalCost) * 100 : 0;
     const breakEvenYield = expectedPrice > 0 ? totalCost / expectedPrice : 0;
@@ -315,62 +315,62 @@ const ProfitCalculator: React.FC = () => {
                 />
               </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Seeds Cost (₹)</label>
-                <input
-                  type="number"
+            <input
+              type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   value={formData.seedsCost}
                   onChange={(e) => handleInputChange('seedsCost', Number(e.target.value))}
                   placeholder="0"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Fertilizer Cost (₹)</label>
-                <input
-                  type="number"
+            <input
+              type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   value={formData.fertilizerCost}
                   onChange={(e) => handleInputChange('fertilizerCost', Number(e.target.value))}
                   placeholder="0"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Labor Cost (₹)</label>
-                <input
-                  type="number"
+            <input
+              type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   value={formData.laborCost}
                   onChange={(e) => handleInputChange('laborCost', Number(e.target.value))}
                   placeholder="0"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Other Costs (₹)</label>
-                <input
-                  type="number"
+            <input
+              type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   value={formData.otherCosts}
                   onChange={(e) => handleInputChange('otherCosts', Number(e.target.value))}
                   placeholder="0"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Expected Yield (kg)</label>
-                <input
-                  type="number"
+            <input
+              type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   value={formData.expectedYield}
                   onChange={(e) => handleInputChange('expectedYield', Number(e.target.value))}
                   placeholder="0"
-                />
-              </div>
+            />
+          </div>
 
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Expected Price per kg (₹)
                   {marketPrices && (
@@ -379,8 +379,8 @@ const ProfitCalculator: React.FC = () => {
                     </span>
                   )}
                 </label>
-                <input
-                  type="number"
+            <input
+              type="number"
                   className="w-full border border-gray-300 rounded-lg px-3 py-2"
                   value={formData.expectedPrice}
                   onChange={(e) => handleInputChange('expectedPrice', Number(e.target.value))}

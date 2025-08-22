@@ -3,7 +3,7 @@ const cheerio = require('cheerio');
 let puppeteer = null; // lazy-loaded
 
 class GovernmentSchemesService {
-  constructor() {
+    constructor() {
     console.log('GovernmentSchemesService initialized with myScheme.gov.in integration');
     
     // Browser instance management
@@ -140,7 +140,7 @@ class GovernmentSchemesService {
               };
               schemes.push(scheme);
             }
-          } catch (error) {
+    } catch (error) {
             console.error('Error parsing scheme element:', error);
           }
         });
@@ -183,7 +183,7 @@ class GovernmentSchemesService {
         // Add delay between requests to be respectful
         await new Promise(resolve => setTimeout(resolve, 2000));
         
-      } catch (error) {
+    } catch (error) {
         console.error(`❌ Error on page ${currentPage}:`, error);
         hasMorePages = false;
         break;
@@ -209,7 +209,7 @@ class GovernmentSchemesService {
       this.cache.lastUpdated = Date.now();
       
       console.log(`✅ Cache refreshed with ${schemes.length} schemes`);
-      
+
     } catch (error) {
       console.error('❌ Failed to refresh cache:', error);
       // Keep existing cache if refresh fails
@@ -284,7 +284,7 @@ class GovernmentSchemesService {
           }
         }
       };
-
+      
     } catch (error) {
       console.error('❌ Search error:', error);
       // Return fallback data on error
@@ -320,7 +320,7 @@ class GovernmentSchemesService {
         name: 'PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)',
         description: 'Direct income support of ₹6,000 per year to eligible farmer families',
         category: 'Financial Support',
-        status: 'Active',
+              status: 'Active',
         url: 'https://www.myscheme.gov.in/schemes/pm-kisan',
         eligibility: 'Small and marginal farmers',
         benefits: '₹6,000 per year in three equal installments'
@@ -330,7 +330,7 @@ class GovernmentSchemesService {
         name: 'PM Fasal Bima Yojana',
         description: 'Comprehensive crop insurance scheme for farmers',
         category: 'Crop Insurance',
-        status: 'Active',
+            status: 'Active',
         url: 'https://www.myscheme.gov.in/schemes/pm-fasal-bima',
         eligibility: 'All farmers growing notified crops',
         benefits: 'Crop insurance coverage against natural calamities'
@@ -340,7 +340,7 @@ class GovernmentSchemesService {
         name: 'Soil Health Card Scheme',
         description: 'Provides soil health cards to farmers with crop-wise recommendations',
         category: 'Soil Health',
-        status: 'Active',
+            status: 'Active',
         url: 'https://www.myscheme.gov.in/schemes/soil-health-card',
         eligibility: 'All farmers',
         benefits: 'Free soil testing and recommendations'
@@ -482,13 +482,13 @@ class GovernmentSchemesService {
 
       // Cache the detailed scheme
       this.setCachedDetails(schemeId, detailedScheme);
-      
-      return {
+        
+        return {
         success: true,
         data: detailedScheme
       };
-
-    } catch (error) {
+      
+      } catch (error) {
       console.error('❌ Get scheme details error:', error);
       return {
         success: false,
@@ -512,7 +512,7 @@ class GovernmentSchemesService {
       const scheme = schemeResponse.data;
       
       // Basic eligibility check based on common criteria
-      const eligibility = {
+    const eligibility = {
         isEligible: true,
         reasons: [],
         recommendations: []
@@ -647,7 +647,7 @@ class GovernmentSchemesService {
     } catch (error) {
       console.error('❌ Get categories error:', error);
       // Return fallback categories on error
-      return {
+        return {
         success: true,
         data: {
           categories: [
@@ -677,7 +677,7 @@ class GovernmentSchemesService {
       await this.browser.close();
       this.browser = null;
     }
+    }
   }
-}
-
-module.exports = new GovernmentSchemesService();
+  
+  module.exports = new GovernmentSchemesService();
