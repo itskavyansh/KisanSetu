@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import defaultAvatar from '../public/default-avatar.png';
+import React, { useState, useEffect, useCallback } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { 
-  MagnifyingGlassIcon,
   MicrophoneIcon,
   BellIcon,
   Cog6ToothIcon,
@@ -13,14 +11,11 @@ import {
   CloudIcon,
   ExclamationCircleIcon,
   CheckIcon,
-  PlayIcon,
   ChatBubbleLeftIcon,
   ArrowPathIcon,
   ChartBarIcon,
-  TruckIcon,
-  CloudArrowDownIcon,
   SparklesIcon,
-  CogIcon
+  
 } from '@heroicons/react/24/outline';
 import { marketAPI } from '../services/marketService';
 import { governmentSchemesAPI } from '../services/governmentSchemesService';
@@ -41,9 +36,67 @@ const Dashboard: React.FC = () => {
   const [chatInput, setChatInput] = useState('');
   const [chatHistory, setChatHistory] = useState<Array<{ sender: 'user' | 'ai', text: string }>>([]);
   const [chatLoading, setChatLoading] = useState(false);
+  const [chatSettingsOpen, setChatSettingsOpen] = useState(false);
 
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+
+  const handleClearChat = () => {
+    setChatHistory([]);
+  };
+
+  const handleExportChat = useCallback(() => {
+    try {
+      const exportObject = {
+        exportedAt: new Date().toISOString(),
+        messages: chatHistory,
+      };
+      const blob = new Blob([JSON.stringify(exportObject, null, 2)], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chat-export-${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('Failed to export chat:', e);
+    }
+  }, [chatHistory]);
+
+  // Global keyboard shortcuts for chatbot
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && chatOpen) {
+        setChatOpen(false);
+        setChatSettingsOpen(false);
+        return;
+      }
+      // Ctrl+K => Open chatbot
+      if ((event.ctrlKey || event.metaKey) && (event.key === 'k' || event.key === 'K')) {
+        event.preventDefault();
+        setChatOpen(true);
+        return;
+      }
+      // Ctrl+L => Clear chat (when modal open)
+      if (chatOpen && (event.ctrlKey || event.metaKey) && (event.key === 'l' || event.key === 'L')) {
+        event.preventDefault();
+        setChatHistory([]);
+        return;
+      }
+      // Ctrl+S => Export chat (when modal open)
+      if (chatOpen && (event.ctrlKey || event.metaKey) && (event.key === 's' || event.key === 'S')) {
+        event.preventDefault();
+        handleExportChat();
+        return;
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [chatOpen, handleExportChat]);
+
+  
 
   // Load initial data
   useEffect(() => {
@@ -109,6 +162,25 @@ const Dashboard: React.FC = () => {
 
   const handleCropScan = () => {
     navigate('/scan-crop');
+  };
+
+  // Minimal markdown formatter: escape HTML, support **bold**, *italic*, `code`, and newlines
+  const escapeHtml = (input: string): string => {
+    return String(input)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  };
+
+  const markdownToHtml = (input: string): string => {
+    const escaped = escapeHtml(input || '');
+    const bold = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    const italic = bold.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
+    const code = italic.replace(/`([^`]+)`/g, '<code>$1</code>');
+    const withBreaks = code.replace(/\n/g, '<br/>');
+    return withBreaks;
   };
 
   return (
@@ -387,7 +459,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-      {/* Floating Chatbot Icon and Window */}
+      {/* Chatbot Trigger and Centered Modal */}
       <div className="fixed bottom-6 right-6 z-50">
         {!chatOpen && (
           <button
@@ -398,25 +470,46 @@ const Dashboard: React.FC = () => {
             <ChatBubbleLeftIcon className="w-7 h-7 text-white" />
           </button>
         )}
-        {chatOpen && (
-          <div className="w-80 h-96 bg-white rounded-xl shadow-2xl flex flex-col border border-blue-200">
-            <div className="flex items-center justify-between px-4 py-2 border-b border-blue-100 bg-blue-50 rounded-t-xl">
+      </div>
+
+      {chatOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black bg-opacity-40"
+            onClick={() => setChatOpen(false)}
+          />
+
+          {/* Modal */}
+          <div className="relative w-full max-w-2xl h-[70vh] bg-white rounded-2xl shadow-2xl border border-blue-200 flex flex-col">
+            <div className="flex items-center justify-between px-5 py-3 border-b border-blue-100 bg-blue-50 rounded-t-2xl">
               <span className="font-semibold text-blue-700">Gemini AI Chatbot</span>
-              <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-gray-700 text-lg">×</button>
+              <div className="flex items-center gap-2">
+                <button onClick={handleClearChat} className="text-blue-700 hover:text-blue-900 text-sm font-medium px-3 py-1 rounded border border-blue-200 bg-white">Clear</button>
+                <button onClick={handleExportChat} className="text-blue-700 hover:text-blue-900 text-sm font-medium px-3 py-1 rounded border border-blue-200 bg-white">Export</button>
+                <button onClick={() => setChatSettingsOpen((v) => !v)} className="text-blue-700 hover:text-blue-900 text-sm font-medium px-3 py-1 rounded border border-blue-200 bg-white">Settings</button>
+                <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-gray-700 text-xl" aria-label="Close">×</button>
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
+            <div className="flex-1 overflow-y-auto px-5 py-3 space-y-2">
               {chatHistory.length === 0 && (
                 <div className="text-gray-400 text-sm text-center mt-8">Start a conversation with the AI assistant...</div>
               )}
               {chatHistory.map((msg, idx) => (
                 <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                  <div className={`max-w-[70%] px-3 py-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'}`}>
-                    {msg.text}
-                  </div>
+                  <div
+                    className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${msg.sender === 'user' ? 'bg-blue-100 text-blue-900' : 'bg-gray-100 text-gray-800'}`}
+                    dangerouslySetInnerHTML={{ __html: markdownToHtml(msg.text) }}
+                  />
                 </div>
               ))}
             </div>
-            <div className="p-3 border-t border-blue-100 bg-blue-50 rounded-b-xl">
+            {chatSettingsOpen && (
+              <div className="px-5 py-3 border-b border-blue-100 bg-blue-50">
+                <div className="text-sm text-blue-800">Settings placeholder — add options here later.</div>
+              </div>
+            )}
+            <div className="p-4 border-t border-blue-100 bg-blue-50 rounded-b-2xl">
               <form
                 onSubmit={e => { e.preventDefault(); handleChatSend(); }}
                 className="flex gap-2"
@@ -439,8 +532,8 @@ const Dashboard: React.FC = () => {
               </form>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       </div>
     </div>
   );

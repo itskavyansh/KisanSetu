@@ -67,8 +67,12 @@ const MarketPage: React.FC = () => {
       if (pricesResponse.data.success && pricesResponse.data.data.prices && pricesResponse.data.data.prices.length > 0) {
         console.log('✅ Real price data received:', pricesResponse.data.data.prices.length, 'records');
         
-        const currentPrice = parseInt(pricesResponse.data.data.prices[0]?.['Model Prize']) || 1500;
-        const previousPrice = parseInt(pricesResponse.data.data.prices[1]?.['Model Prize']) || 1450;
+        // Convert from rupees per quintal (100 kg) to rupees per kg
+        const currentPricePerQuintal = parseInt(pricesResponse.data.data.prices[0]?.['Model Prize']) || 1500;
+        const previousPricePerQuintal = parseInt(pricesResponse.data.data.prices[1]?.['Model Prize']) || 1450;
+        
+        const currentPrice = Math.round(currentPricePerQuintal / 100); // Convert to per kg
+        const previousPrice = Math.round(previousPricePerQuintal / 100); // Convert to per kg
         
         // Generate mandi prices from real data
         const realMandiPrices = generateMandiPricesFromRealData(pricesResponse.data.data.prices, selectedCrop, selectedState);
@@ -150,8 +154,9 @@ const MarketPage: React.FC = () => {
     // Use real data for the selected market, generate for others
     stateMarkets.forEach(market => {
       if (market === selectedMarket && prices.length > 0) {
-        // Use real data for selected market
-        mandiPrices[market] = parseInt(prices[0]['Model Prize']) || getBasePrice(crop);
+        // Use real data for selected market (convert from quintal to per kg)
+        const pricePerQuintal = parseInt(prices[0]['Model Prize']) || getBasePrice(crop);
+        mandiPrices[market] = Math.round(pricePerQuintal / 100);
       } else {
         // Generate realistic data for other markets
         const basePrice = getBasePrice(crop);
@@ -163,19 +168,19 @@ const MarketPage: React.FC = () => {
     return mandiPrices;
   };
 
-  // Get base price for different crops
+  // Get base price for different crops (in rupees per kg)
   const getBasePrice = (crop: string) => {
     const basePrices = {
-      'Potato': 1500,
-      'Tomato': 2000,
-      'Onion': 1800,
-      'Rice': 2500,
-      'Wheat': 2200,
-      'Maize': 1800,
-      'Cotton': 6000,
-      'Sugarcane': 350
+      'Potato': 15,      // ₹15/kg
+      'Tomato': 20,      // ₹20/kg
+      'Onion': 18,       // ₹18/kg
+      'Rice': 25,        // ₹25/kg
+      'Wheat': 22,       // ₹22/kg
+      'Maize': 18,       // ₹18/kg
+      'Cotton': 60,      // ₹60/kg
+      'Sugarcane': 3.5   // ₹3.5/kg
     };
-    return basePrices[crop as keyof typeof basePrices] || 1500;
+    return basePrices[crop as keyof typeof basePrices] || 15;
   };
 
   // Generate market recommendation
@@ -215,6 +220,7 @@ const MarketPage: React.FC = () => {
   return (
     <div className="flex-1 overflow-auto relative min-h-screen p-6">
       <div className="w-full">
+        {/* Header Section */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Market Intelligence</h1>
           <p className="text-gray-600">
@@ -305,11 +311,7 @@ const MarketPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Status Display */}
-
-
-
-
+        {/* Loading State */}
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
@@ -317,42 +319,7 @@ const MarketPage: React.FC = () => {
           </div>
         ) : (
           <>
-                                              {/* Analytics Dashboard with Props */}
-                   <div className="mb-8">
-                     <AnalyticsDashboard
-                       initialCommodity={selectedCrop}
-                       initialState={selectedState}
-                       initialYear={selectedYear}
-                     />
-                   </div>
-
-                   {/* Advanced Analytics Section */}
-                   <div className="mb-8">
-                     <div className="mb-6">
-                       <h2 className="text-2xl font-bold text-gray-900 mb-2">🔮 Advanced Market Intelligence</h2>
-                       <p className="text-gray-600">
-                         AI-powered price predictions, seasonal trends, and market insights
-                       </p>
-                     </div>
-                     
-                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                       <PricePredictionChart
-                         commodity={selectedCrop}
-                         state={selectedState}
-                         market={selectedMarket}
-                         days={30}
-                         height={400}
-                       />
-                       <SeasonalTrendsChart
-                         commodity={selectedCrop}
-                         state={selectedState}
-                         market={selectedMarket}
-                         height={400}
-                       />
-                     </div>
-                   </div>
-
-            {/* Current Price Card */}
+            {/* Current Price Card - Main Information */}
             {marketData && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
                 <div className="flex items-center justify-between mb-4">
@@ -360,7 +327,7 @@ const MarketPage: React.FC = () => {
                     {selectedCrop} Prices - {selectedMarket}, {selectedState}
                   </h2>
                   <span className="text-sm text-gray-500">
-                    Last updated: {marketData.lastUpdated ? new Date(marketData.lastUpdated).toLocaleString() : 'N/A'}
+                    Last updated: {marketData.lastUpdated ? new Date(marketData.lastUpdated).toISOString() : 'N/A'}
                   </span>
                 </div>
 
@@ -369,16 +336,14 @@ const MarketPage: React.FC = () => {
                     <div className="text-3xl font-bold text-gray-900 mb-2">
                       ₹{marketData.currentPrice}/kg
                     </div>
-                    <div className="text-sm text-gray-600">Current Price</div>
+                    <div className="text-sm text-gray-600">Current Price (per kg)</div>
                   </div>
-
-
 
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900 mb-2">
                       ₹{marketData.previousPrice}/kg
                     </div>
-                    <div className="text-sm text-gray-600">Previous Price</div>
+                    <div className="text-sm text-gray-600">Previous Price (per kg)</div>
                   </div>
                 </div>
 
@@ -386,13 +351,20 @@ const MarketPage: React.FC = () => {
                   <h3 className="font-semibold text-blue-900 mb-2">Market Recommendation</h3>
                   <p className="text-blue-800">{marketData.recommendation}</p>
                 </div>
+                
+                <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    <strong>Note:</strong> Prices are displayed in rupees per kilogram (₹/kg). 
+                    Agmarknet data is converted from quintal (100 kg) to per kg for easier comparison.
+                  </p>
+                </div>
               </div>
             )}
 
-            {/* Mandi Prices */}
+            {/* Mandi Prices Section */}
             {marketData?.mandiPrices && (
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Mandi Prices</h2>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Mandi Prices (per kg)</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {Object.entries(marketData.mandiPrices).map(([mandi, price]) => (
                     <div key={mandi} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
@@ -406,9 +378,44 @@ const MarketPage: React.FC = () => {
               </div>
             )}
 
+            {/* Analytics Dashboard */}
+            <div className="mb-8">
+              <AnalyticsDashboard
+                initialCommodity={selectedCrop}
+                initialState={selectedState}
+                initialYear={selectedYear}
+                showWeatherChart={false}
+                showCropChart={false}
+              />
+            </div>
 
+            {/* Advanced Analytics Section */}
+            <div className="mb-8">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">🔮 Advanced Market Intelligence</h2>
+                <p className="text-gray-600">
+                  AI-powered price predictions, seasonal trends, and market insights
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <PricePredictionChart
+                  commodity={selectedCrop}
+                  state={selectedState}
+                  market={selectedMarket}
+                  days={30}
+                  height={400}
+                />
+                <SeasonalTrendsChart
+                  commodity={selectedCrop}
+                  state={selectedState}
+                  market={selectedMarket}
+                  height={400}
+                />
+              </div>
+            </div>
 
-            {/* Market Analysis */}
+            {/* Market Analysis Section */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Market Analysis</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

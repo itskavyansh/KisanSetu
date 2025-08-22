@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { cropHealthAPI } from '../services/cropHealthService';
+import { ScanHistoryService, ScanHistoryItem } from '../services/scanHistoryService';
+import { useAuth } from '../contexts/AuthContext';
+import CropProductionChart from '../components/charts/CropProductionChart';
 
 const CropScanPage: React.FC = () => {
+  const { currentUser } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -10,9 +14,142 @@ const CropScanPage: React.FC = () => {
   const [isDragActive, setIsDragActive] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [useBackCamera, setUseBackCamera] = useState(true);
+  const [scanHistory, setScanHistory] = useState<ScanHistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cameraStreamRef = useRef<MediaStream | null>(null);
+
+  // Load scan history from Firebase when user changes or component mounts
+  useEffect(() => {
+    if (currentUser) {
+      loadScanHistory();
+    } else {
+      setScanHistory([]);
+    }
+  }, [currentUser]);
+
+  // Load scan history from Firebase
+  const loadScanHistory = async () => {
+    if (!currentUser) return;
+    
+    try {
+      setHistoryLoading(true);
+      setError(null); // Clear any previous errors
+      const history = await ScanHistoryService.getUserScanHistory(currentUser.uid);
+      setScanHistory(history);
+    } catch (err) {
+      console.error('Error loading scan history:', err);
+      // Don't show error for history loading as it's not critical
+      // Just log it and continue with empty history
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  // Add new scan to Firebase history
+  const addToHistory = async (scanResult: any, imageFile: File) => {
+    if (!currentUser || !imageFile) return;
+    
+    try {
+      setUploadingImage(true);
+      const scanData = {
+        crop: scanResult.data?.crop || 'Unknown',
+        disease: scanResult.data?.disease || 'Unknown',
+        confidence: scanResult.data?.confidence || 0,
+        imageUrl: '', // This will be set by the service after upload
+        result: scanResult
+      };
+
+      await ScanHistoryService.addScan(currentUser.uid, scanData, imageFile);
+      
+      // Reload history to show the new scan
+      await loadScanHistory();
+    } catch (err) {
+      console.error('Error saving scan to history:', err);
+      // Don't show error to user as this is not critical
+      // The scan result is still displayed, just not saved to history
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Remove scan from Firebase history
+  const removeFromHistory = async (id: string, imageUrl?: string) => {
+    if (!id) return;
+    
+    try {
+      await ScanHistoryService.deleteScan(id, imageUrl);
+      setScanHistory(prev => prev.filter(scan => scan.id !== id));
+    } catch (err) {
+      console.error('Error deleting scan:', err);
+      setError('Failed to delete scan from history');
+    }
+  };
+
+  // Clear all scans from Firebase history
+  const clearHistory = async () => {
+    if (!currentUser) return;
+    
+    try {
+      await ScanHistoryService.clearUserHistory(currentUser.uid);
+      setScanHistory([]);
+    } catch (err) {
+      console.error('Error clearing scan history:', err);
+      setError('Failed to clear scan history');
+    }
+  };
+
+  // Load scan result from history
+  const loadFromHistory = (scan: ScanHistoryItem) => {
+    setResult(scan.result);
+    setPreviewUrl(scan.imageUrl);
+    setFile(null); // Clear current file since we're loading from history
+  };
+
+  // Format timestamp for display
+  const formatTimestamp = (timestamp: any) => {
+    if (!timestamp) return 'Unknown';
+    
+    let date: Date;
+    
+    // Handle Firestore timestamp
+    if (timestamp.toDate) {
+      date = timestamp.toDate();
+    } else if (timestamp instanceof Date) {
+      date = timestamp;
+    } else {
+      date = new Date(timestamp);
+    }
+    
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+    
+    if (diffInHours < 1) {
+      return 'Just now';
+    } else if (diffInHours < 24) {
+      return `${Math.floor(diffInHours)}h ago`;
+    } else if (diffInHours < 168) { // 7 days
+      return `${Math.floor(diffInHours / 24)}d ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
+  // Get confidence color
+  const getConfidenceColor = (confidence: number) => {
+    if (confidence >= 80) return 'text-green-600';
+    if (confidence >= 60) return 'text-yellow-600';
+    return 'text-red-600';
+  };
+
+  // Get confidence badge color
+  const getConfidenceBadgeColor = (confidence: number) => {
+    if (confidence >= 80) return 'bg-green-100 text-green-800';
+    if (confidence >= 60) return 'bg-yellow-100 text-yellow-800';
+    return 'bg-red-100 text-red-800';
+  };
 
   useEffect(() => {
     return () => {
@@ -178,6 +315,11 @@ const CropScanPage: React.FC = () => {
       return;
     }
 
+    if (!currentUser) {
+      setError('Please log in to save scan history');
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -186,12 +328,44 @@ const CropScanPage: React.FC = () => {
         image: file
       });
       setResult(response);
+      
+      // Add to Firebase history
+      if (file) {
+        await addToHistory(response, file);
+      }
+      
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to analyze crop image');
     } finally {
       setLoading(false);
     }
   };
+
+  // Show login required message if user is not authenticated
+  if (!currentUser) {
+    return (
+      <div className="flex-1 overflow-auto relative min-h-screen p-6">
+        <div className="w-full">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Crop Health Scanner</h1>
+            <p className="text-gray-600">
+              Upload a photo of your crop or capture one using your camera to get instant disease detection and treatment recommendations
+            </p>
+          </div>
+          
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <svg className="mx-auto h-12 w-12 text-yellow-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <h3 className="text-lg font-medium text-yellow-800 mb-2">Login Required</h3>
+            <p className="text-yellow-700">
+              Please log in to use the crop health scanner and save your scan history.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-auto relative min-h-screen p-6">
@@ -360,13 +534,21 @@ const CropScanPage: React.FC = () => {
 
             {result && !loading && (
               <div className="space-y-4">
+                {uploadingImage && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      <p className="text-blue-800 text-sm">Saving scan to history...</p>
+                    </div>
+                  </div>
+                )}
                 {(() => {
                   const res: any = (result as any)?.data || result;
                   if (res && res.isPlant === false) {
                     return (
                       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                         <h3 className="font-semibold text-red-900 mb-2">Analysis</h3>
-                        <p className="text-red-800 text-sm">invalid plant picture</p>
+                        <p className="text-red-800 text-sm">Invalid plant picture</p>
                       </div>
                     );
                   }
@@ -376,11 +558,7 @@ const CropScanPage: React.FC = () => {
                         <h3 className="font-semibold text-gray-900 mb-2">Disease Detection</h3>
                         <p className="text-gray-700">{res?.disease || 'Unknown'}</p>
                         {typeof res?.confidence === 'number' && (
-                          <div className={`mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            res.confidence > 80 ? 'bg-green-100 text-green-800' :
-                            res.confidence > 60 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                          <div className={`mt-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getConfidenceBadgeColor(res.confidence)}`}>
                             Confidence: {res.confidence}%
                           </div>
                         )}
@@ -447,15 +625,109 @@ const CropScanPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Crop Production Insights */}
+        <div className="mb-8">
+          <CropProductionChart
+            height={360}
+            selectedCrop={result?.data?.crop || 'Rice'}
+            state={'Karnataka'}
+            availableStates={[
+              'Karnataka', 'Maharashtra', 'Tamil Nadu', 'Andhra Pradesh',
+              'Telangana', 'Kerala', 'Gujarat', 'Rajasthan'
+            ]}
+            onChangeState={(newState) => {}}
+          />
+        </div>
+
         {/* History Section */}
         <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">
+            <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold text-gray-900">Scan History</h2>
+              {scanHistory.length > 0 && (
+                <button
+                  onClick={clearHistory}
+                  className="text-sm text-red-600 hover:text-red-800 font-medium"
+                >
+                  Clear All
+                </button>
+              )}
+            </div>
           </div>
+          
           <div className="p-6">
-            <p className="text-gray-500 text-center py-4">
-              Your crop scan history will appear here
-            </p>
+            {historyLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-kisan-green mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading scan history...</p>
+              </div>
+            ) : scanHistory.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {scanHistory.map((scan) => (
+                  <div key={scan.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-sm">{scan.crop}</h3>
+                        <p className="text-xs text-gray-600">{formatTimestamp(scan.timestamp)}</p>
+                      </div>
+                      <button
+                        onClick={() => removeFromHistory(scan.id!, scan.imageUrl)}
+                        className="text-red-500 hover:text-red-700 text-sm ml-2"
+                      >
+                        ×
+                      </button>
+                    </div>
+                    
+                    <div className="mb-3">
+                      <img 
+                        src={scan.imageUrl} 
+                        alt={`${scan.crop} scan`} 
+                        className="w-full h-24 object-cover rounded mb-2"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">Disease:</span>
+                        <span className="text-xs font-medium text-gray-900">{scan.disease}</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-600">Confidence:</span>
+                        <span className={`text-xs font-medium ${getConfidenceColor(scan.confidence)}`}>
+                          {scan.confidence}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => loadFromHistory(scan)}
+                      className="w-full mt-3 px-3 py-2 bg-green-100 text-green-800 text-xs rounded hover:bg-green-200 transition-colors"
+                    >
+                      Load Result
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <svg
+                  className="mx-auto h-12 w-12 text-gray-400 mb-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+                <p>No scan history yet</p>
+                <p className="text-sm">Your crop scan results will appear here</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -7,13 +7,17 @@ interface AnalyticsDashboardProps {
   initialCommodity?: string;
   initialState?: string;
   initialYear?: number;
+  showWeatherChart?: boolean;
+  showCropChart?: boolean;
 }
 
 const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
   initialCommodity = 'Potato',
   initialState = 'Karnataka',
-  initialYear = new Date().getFullYear()
+  initialYear = new Date().getFullYear(),
+  showWeatherChart = true,
+  showCropChart = true
 }) => {
   const [selectedCommodity, setSelectedCommodity] = useState(initialCommodity);
   const [selectedState, setSelectedState] = useState(initialState);
@@ -51,24 +55,28 @@ const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Weather Impact Chart */}
-        <div>
-          <WeatherImpactChart
-            location={selectedLocation}
-            cropType={selectedCommodity}
-            days={30}
-            height={400}
-          />
-        </div>
+        {showWeatherChart && (
+          <div>
+            <WeatherImpactChart
+              location={selectedLocation}
+              cropType={selectedCommodity}
+              days={30}
+              height={400}
+            />
+          </div>
+        )}
 
         {/* Crop Production Chart */}
-        <div>
-          <CropProductionChart
-            year={selectedYear}
-            state={selectedState}
-            height={400}
-            selectedCrop={selectedCommodity}
-          />
-        </div>
+        {showCropChart && (
+          <div>
+            <CropProductionChart
+              year={selectedYear}
+              state={selectedState}
+              height={400}
+              selectedCrop={selectedCommodity}
+            />
+          </div>
+        )}
       </div>
 
       {/* Summary Cards */}

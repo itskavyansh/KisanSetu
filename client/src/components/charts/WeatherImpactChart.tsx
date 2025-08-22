@@ -310,6 +310,7 @@ const WeatherImpactChart: React.FC<WeatherImpactChartProps> = ({
             name="Humidity (%)"
           />
           <Area
+            yAxisId="left"
             type="monotone"
             dataKey="rainfall"
             stroke="#10b981"
