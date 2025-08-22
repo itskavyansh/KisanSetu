@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const voiceInterfaceService = require('../services/voiceInterfaceService');
 const aiAgentService = require('../services/aiAgentService');
+const { geminiModel } = require('../config/googleCloud');
 const router = express.Router();
 
 // Configure multer for audio uploads
@@ -80,15 +81,38 @@ router.post('/generate-response', async (req, res) => {
 // POST /api/voice/chat
 router.post('/chat', async (req, res) => {
   try {
-    const { query, language = 'kannada', userId = 'default' } = req.body;
+    const { query, userId = 'default' } = req.body;
+    const language = 'english'; // Force English for chat-based queries to avoid translation-only replies
     
     if (!query) {
       return res.status(400).json({ error: 'Query is required' });
     }
 
-    const response = await aiAgentService.processQuery(query, language, userId);
-    
-    res.json(response);
+    // Use Vertex AI Gemini primarily
+    let replyText = null;
+    let usedFallback = false;
+
+    try {
+      if (geminiModel && typeof geminiModel.generateContent === 'function') {
+        const result = await geminiModel.generateContent({
+          contents: [
+            { role: 'user', parts: [{ text: `You are KisanSetu, an agricultural assistant. Answer concisely and helpfully.\nQuestion: ${query}` }] }
+          ]
+        });
+        replyText = result?.candidates?.[0]?.content?.parts?.[0]?.text || null;
+      }
+    } catch (e) {
+      usedFallback = true;
+      console.warn('Vertex AI failed in /api/voice/chat:', e.message);
+    }
+
+    if (!replyText) {
+      usedFallback = true;
+      const fallback = await aiAgentService.processQuery(query, language, userId);
+      replyText = fallback?.data?.reply || 'Sorry, I could not generate a response.';
+    }
+
+    return res.json({ success: true, data: { reply: replyText, language, usedFallback, timestamp: new Date().toISOString() } });
   } catch (error) {
     res.status(500).json({
       success: false,
