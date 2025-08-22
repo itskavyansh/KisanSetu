@@ -43,7 +43,7 @@ interface CropStatus {
 }
 
 const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const [insights, setInsights] = useState<PersonalizedInsight[]>([]);
   const [farmMetrics, setFarmMetrics] = useState<FarmMetrics | null>(null);
@@ -90,7 +90,7 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, [user]);
+  }, [currentUser]);
 
   const loadDashboardData = async () => {
     try {
@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
       // Load multiple data sources in parallel
       const [carbonResponse, schemesResponse] = await Promise.all([
         carbonCreditsAPI.getMarketInfo().catch(() => ({ data: { currentPrice: 900 } })),
-        governmentSchemesAPI.searchSchemes('', {}, 1, 3).catch(() => ({ data: { schemes: [] } })),
+        governmentSchemesAPI.searchSchemes({ page: 1 }).catch(() => ({ data: { schemes: [] } })),
       ]);
 
       // Generate realistic farm metrics based on user location and crops
@@ -171,7 +171,7 @@ const Dashboard: React.FC = () => {
           priority: 'critical',
           actionable: true,
           action: 'Set up drainage',
-          icon: '⚠️',
+          icon: 'W',
           impact: 'Could save ₹15,000 in crop damage'
         },
         {
@@ -182,7 +182,7 @@ const Dashboard: React.FC = () => {
           priority: 'high',
           actionable: true,
           action: 'Schedule early harvest',
-          icon: '📈',
+          icon: 'M',
           impact: 'Potential gain: ₹22,000'
         },
         {
@@ -193,7 +193,7 @@ const Dashboard: React.FC = () => {
           priority: 'medium',
           actionable: true,
           action: 'Explore bio-fertilizers',
-          icon: '💡',
+          icon: 'F',
           impact: 'Monthly savings: ₹8,000'
         },
         {
@@ -204,7 +204,7 @@ const Dashboard: React.FC = () => {
           priority: 'high',
           actionable: true,
           action: 'Apply fungicide today',
-          icon: '🍅',
+          icon: 'C',
           impact: 'Prevent 30-60% yield loss'
         },
         {
@@ -215,7 +215,7 @@ const Dashboard: React.FC = () => {
           priority: 'medium',
           actionable: true,
           action: 'Apply for new scheme',
-          icon: '🏛️',
+          icon: 'S',
           impact: 'Additional income: ₹17,000'
         },
         {
@@ -226,7 +226,7 @@ const Dashboard: React.FC = () => {
           priority: 'medium',
           actionable: true,
           action: 'Schedule soil treatment',
-          icon: '🌾',
+          icon: 'R',
           impact: 'Increase yield by 15-20%'
         }
       ];
@@ -267,9 +267,9 @@ const Dashboard: React.FC = () => {
 
   const getCurrentSeason = () => {
     const month = new Date().getMonth();
-    if (month >= 5 && month <= 9) return { name: 'Kharif', icon: '🌧️', color: 'green', description: 'Monsoon season - ideal for rice, cotton, sugarcane' };
-    if (month >= 10 || month <= 2) return { name: 'Rabi', icon: '❄️', color: 'blue', description: 'Winter season - perfect for wheat, barley, peas' };
-    return { name: 'Zaid', icon: '☀️', color: 'orange', description: 'Summer season - suitable for watermelon, fodder crops' };
+    if (month >= 5 && month <= 9) return { name: 'Kharif', description: 'Monsoon season - ideal for rice, cotton, sugarcane' };
+    if (month >= 10 || month <= 2) return { name: 'Rabi', description: 'Winter season - perfect for wheat, barley, peas' };
+    return { name: 'Zaid', description: 'Summer season - suitable for watermelon, fodder crops' };
   };
 
   const getGreeting = () => {
@@ -287,7 +287,7 @@ const Dashboard: React.FC = () => {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-kisan-green mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-gray-600 mx-auto mb-4"></div>
           <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading Your Farm Insights</h2>
           <p className="text-gray-500">Analyzing your crops, weather, and market data...</p>
         </div>
@@ -297,52 +297,42 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex-1 overflow-auto relative min-h-screen bg-gray-50">
-      {/* Enhanced Header with Personal Greeting */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white">
+      {/* Professional Header */}
+      <div className="bg-white border-b border-gray-200">
         <div className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-2xl">
-                🧑‍🌾
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold">
-                  {greeting}, {user?.displayName || 'Farmer'} 👋
-                </h1>
-                <p className="text-green-100 text-lg">{season.description}</p>
-              </div>
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {greeting}, {currentUser?.displayName || 'Farmer'}
+              </h1>
+              <p className="text-gray-600 text-lg mt-1">{season.description}</p>
             </div>
             <div className="text-right">
-              <div className="bg-white/20 backdrop-blur rounded-lg px-4 py-2">
-                <div className="text-2xl mb-1">{season.icon}</div>
-                <div className="font-semibold">{season.name} Season</div>
-                <div className="text-sm text-green-100">{new Date().toLocaleDateString()}</div>
+              <div className="bg-gray-100 rounded-lg px-4 py-3">
+                <div className="text-sm text-gray-600 mb-1">Current Season</div>
+                <div className="font-semibold text-gray-900">{season.name}</div>
+                <div className="text-xs text-gray-500">{new Date().toLocaleDateString()}</div>
               </div>
             </div>
           </div>
 
-          {/* Critical Alerts Bar */}
+          {/* Critical Alerts */}
           {insights.filter(i => i.priority === 'critical').length > 0 && (
-            <div className="bg-red-500 rounded-lg p-4 mb-4">
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-xl">🚨</span>
-                <h3 className="font-semibold">Urgent Action Required</h3>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <h3 className="font-semibold text-red-800">Urgent Action Required</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {insights.filter(i => i.priority === 'critical').map((insight) => (
-                  <div key={insight.id} className="bg-white/20 rounded p-3">
-                    <div className="flex items-start space-x-2">
-                      <span className="text-lg">{insight.icon}</span>
-                      <div>
-                        <h4 className="font-medium text-sm">{insight.title}</h4>
-                        <p className="text-xs text-red-100 mt-1">{insight.message}</p>
-                        {insight.actionable && (
-                          <button className="mt-2 bg-white text-red-600 px-3 py-1 rounded text-xs font-medium hover:bg-red-50">
-                            {insight.action}
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                  <div key={insight.id} className="bg-white rounded border border-red-200 p-4">
+                    <h4 className="font-medium text-red-800 mb-2">{insight.title}</h4>
+                    <p className="text-sm text-red-700 mb-3">{insight.message}</p>
+                    {insight.actionable && (
+                      <button className="bg-red-600 text-white px-4 py-2 rounded text-sm font-medium hover:bg-red-700 transition-colors">
+                        {insight.action}
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -354,62 +344,78 @@ const Dashboard: React.FC = () => {
       <div className="p-6 space-y-6">
         {/* Farm Performance Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-blue-100 text-sm font-medium">Farm Efficiency</h3>
-                <p className="text-3xl font-bold">{farmMetrics?.efficiencyScore}%</p>
-                <p className="text-blue-100 text-sm">+5% from last month</p>
+                <h3 className="text-gray-600 text-sm font-medium">Farm Efficiency</h3>
+                <p className="text-3xl font-bold text-gray-900">{farmMetrics?.efficiencyScore}%</p>
+                <p className="text-green-600 text-sm">+5% from last month</p>
               </div>
-              <div className="text-4xl opacity-80">🎯</div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
             </div>
-            <div className="w-full bg-blue-400 rounded-full h-2">
-              <div className="bg-white h-2 rounded-full" style={{ width: `${farmMetrics?.efficiencyScore}%` }}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${farmMetrics?.efficiencyScore}%` }}></div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-green-100 text-sm font-medium">Monthly Profit</h3>
-                <p className="text-3xl font-bold">₹{(farmMetrics?.monthlyIncome! - farmMetrics?.monthlyExpenses!).toLocaleString()}</p>
-                <p className="text-green-100 text-sm">+23% from last month</p>
+                <h3 className="text-gray-600 text-sm font-medium">Monthly Profit</h3>
+                <p className="text-3xl font-bold text-gray-900">₹{(farmMetrics?.monthlyIncome! - farmMetrics?.monthlyExpenses!).toLocaleString()}</p>
+                <p className="text-green-600 text-sm">+23% from last month</p>
               </div>
-              <div className="text-4xl opacity-80">💰</div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                </svg>
+              </div>
             </div>
-            <div className="text-xs text-green-100">
+            <div className="text-xs text-gray-500">
               Revenue: ₹{farmMetrics?.monthlyIncome.toLocaleString()} | Costs: ₹{farmMetrics?.monthlyExpenses.toLocaleString()}
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-purple-100 text-sm font-medium">Soil Health</h3>
-                <p className="text-3xl font-bold">{farmMetrics?.soilHealth}%</p>
-                <p className="text-purple-100 text-sm">Above regional avg</p>
+                <h3 className="text-gray-600 text-sm font-medium">Soil Health</h3>
+                <p className="text-3xl font-bold text-gray-900">{farmMetrics?.soilHealth}%</p>
+                <p className="text-green-600 text-sm">Above regional avg</p>
               </div>
-              <div className="text-4xl opacity-80">🌱</div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
             </div>
-            <div className="w-full bg-purple-400 rounded-full h-2">
-              <div className="bg-white h-2 rounded-full" style={{ width: `${farmMetrics?.soilHealth}%` }}></div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div className="bg-purple-600 h-2 rounded-full" style={{ width: `${farmMetrics?.soilHealth}%` }}></div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+          <div className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-orange-100 text-sm font-medium">Carbon Credits</h3>
-                <p className="text-3xl font-bold">{farmMetrics?.carbonCredits} <span className="text-lg">kg</span></p>
-                <p className="text-orange-100 text-sm">₹{Math.round((farmMetrics?.carbonCredits! * 0.9))} earned</p>
+                <h3 className="text-gray-600 text-sm font-medium">Carbon Credits</h3>
+                <p className="text-3xl font-bold text-gray-900">{farmMetrics?.carbonCredits} <span className="text-lg">kg</span></p>
+                <p className="text-green-600 text-sm">₹{Math.round((farmMetrics?.carbonCredits! * 0.9))} earned</p>
               </div>
-              <div className="text-4xl opacity-80">🌍</div>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Live Crop Status */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900">Live Crop Status</h2>
             <div className="text-sm text-gray-500">Real-time monitoring • Last updated: {new Date().toLocaleTimeString()}</div>
@@ -417,7 +423,7 @@ const Dashboard: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {cropStatus.map((crop, index) => (
-              <div key={index} className="border rounded-xl p-5 hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-gray-50 to-white">
+              <div key={index} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-bold text-lg text-gray-900">{crop.name}</h3>
                   <div className="flex items-center space-x-2">
@@ -466,13 +472,13 @@ const Dashboard: React.FC = () => {
         {/* Analytics Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Yield Performance vs Environmental Factors */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-bold text-gray-900">Yield Performance Analytics</h3>
               <select 
                 value={selectedTimeframe} 
                 onChange={(e) => setSelectedTimeframe(e.target.value as any)}
-                className="border rounded px-3 py-1 text-sm"
+                className="border border-gray-300 rounded px-3 py-1 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="week">This Week</option>
                 <option value="month">This Month</option>
@@ -499,7 +505,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           {/* Financial Performance Breakdown */}
-          <div className="bg-white rounded-xl shadow-sm border p-6">
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4">Financial Performance</h3>
             <div style={{ height: 300 }}>
               <ChartErrorBoundary>
@@ -521,11 +527,11 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* Market Intelligence Dashboard */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
           <h3 className="text-xl font-bold text-gray-900 mb-6">Market Intelligence - Your Crops</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {marketTrends.map((item, index) => (
-              <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={index} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-3">
                   <h4 className="font-semibold text-lg">{item.crop}</h4>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
@@ -533,7 +539,7 @@ const Dashboard: React.FC = () => {
                     item.trend === 'falling' ? 'bg-red-100 text-red-800' :
                     'bg-yellow-100 text-yellow-800'
                   }`}>
-                    {item.trend === 'rising' ? '📈' : item.trend === 'falling' ? '📉' : '➡️'} {item.change}
+                    {item.change}
                   </span>
                 </div>
                 
@@ -567,8 +573,8 @@ const Dashboard: React.FC = () => {
         </div>
 
         {/* AI-Powered Insights Grid */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">🤖 AI-Powered Insights & Recommendations</h3>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">AI-Powered Insights & Recommendations</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {insights.filter(i => i.priority !== 'critical').map((insight) => (
               <div key={insight.id} className={`rounded-lg p-5 border-l-4 ${
@@ -577,7 +583,9 @@ const Dashboard: React.FC = () => {
                 'border-blue-400 bg-blue-50'
               }`}>
                 <div className="flex items-start space-x-3">
-                  <span className="text-3xl">{insight.icon}</span>
+                  <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-sm font-bold">
+                    {insight.icon}
+                  </div>
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-semibold text-gray-900">{insight.title}</h4>
@@ -591,7 +599,7 @@ const Dashboard: React.FC = () => {
                     </div>
                     <p className="text-sm text-gray-700 mb-3 leading-relaxed">{insight.message}</p>
                     {insight.impact && (
-                      <div className="text-xs text-green-600 font-medium mb-3">💡 {insight.impact}</div>
+                      <div className="text-xs text-green-600 font-medium mb-3">Impact: {insight.impact}</div>
                     )}
                     {insight.actionable && (
                       <button className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -611,12 +619,12 @@ const Dashboard: React.FC = () => {
 
         {/* Enhanced Weather Dashboard */}
         {weatherData && (
-          <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-6 text-white">
-            <h3 className="text-xl font-bold mb-6">🌤️ Agricultural Weather Intelligence</h3>
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-6">Agricultural Weather Intelligence</h3>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Current Conditions */}
-              <div className="bg-white/20 backdrop-blur rounded-lg p-4">
+              <div className="bg-gray-50 rounded-lg p-4">
                 <h4 className="font-semibold mb-3">Current Conditions</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
@@ -643,12 +651,12 @@ const Dashboard: React.FC = () => {
                 <h4 className="font-semibold mb-3">5-Day Agricultural Forecast</h4>
                 <div className="grid grid-cols-5 gap-2 text-center text-sm">
                   {weatherData.forecast.map((day: any, index: number) => (
-                    <div key={index} className="bg-white/20 backdrop-blur rounded p-3">
+                    <div key={index} className="bg-gray-50 rounded p-3">
                       <div className="font-medium mb-1">{day.day}</div>
                       <div className="text-2xl mb-1">{day.temp}°C</div>
-                      <div className="text-xs opacity-90 mb-2">{day.condition}</div>
-                      <div className="text-xs opacity-75">Rain: {day.rain}%</div>
-                      <div className="text-xs mt-2 bg-white/20 rounded px-1 py-0.5">{day.impact}</div>
+                      <div className="text-xs text-gray-600 mb-2">{day.condition}</div>
+                      <div className="text-xs text-gray-500">Rain: {day.rain}%</div>
+                      <div className="text-xs mt-2 bg-blue-100 text-blue-800 rounded px-1 py-0.5">{day.impact}</div>
                     </div>
                   ))}
                 </div>
@@ -657,10 +665,10 @@ const Dashboard: React.FC = () => {
 
             {/* Weather Alerts */}
             {weatherData.alerts && weatherData.alerts.length > 0 && (
-              <div className="mt-4 bg-red-500/20 border border-red-300/30 rounded p-3">
-                <h4 className="font-semibold mb-2 text-red-100">⚠️ Weather Alerts</h4>
+              <div className="mt-4 bg-red-50 border border-red-200 rounded p-3">
+                <h4 className="font-semibold mb-2 text-red-800">Weather Alerts</h4>
                 {weatherData.alerts.map((alert: string, index: number) => (
-                  <div key={index} className="text-sm text-red-100">• {alert}</div>
+                  <div key={index} className="text-sm text-red-700">• {alert}</div>
                 ))}
               </div>
             )}
@@ -668,24 +676,24 @@ const Dashboard: React.FC = () => {
         )}
 
         {/* Quick Action Center */}
-        <div className="bg-white rounded-xl shadow-sm border p-6">
-          <h3 className="text-xl font-bold text-gray-900 mb-6">⚡ Quick Actions</h3>
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h3 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[
-              { icon: '🌾', label: 'Scan Crop', path: '/scan-crop', color: 'green' },
-              { icon: '📊', label: 'Market Prices', path: '/market', color: 'blue' },
-              { icon: '🌤️', label: 'Weather', path: '/weather', color: 'purple' },
-              { icon: '🏛️', label: 'Schemes', path: '/schemes', color: 'orange' },
-              { icon: '💰', label: 'Profit Calc', path: '/profit-calculator', color: 'red' },
-              { icon: '📅', label: 'Crop Calendar', path: '/crop-calendar', color: 'indigo' }
+              { label: 'Scan Crop', path: '/scan-crop', color: 'green' },
+              { label: 'Market Prices', path: '/market', color: 'blue' },
+              { label: 'Weather', path: '/weather', color: 'purple' },
+              { label: 'Schemes', path: '/schemes', color: 'orange' },
+              { label: 'Profit Calc', path: '/profit-calculator', color: 'red' },
+              { label: 'Crop Calendar', path: '/crop-calendar', color: 'indigo' }
             ].map((action, index) => (
               <button
                 key={index}
                 onClick={() => navigate(action.path)}
-                className={`p-4 border border-${action.color}-500 text-${action.color}-500 rounded-xl hover:bg-${action.color}-50 transition-all duration-200 hover:shadow-md hover:scale-105`}
+                className={`p-4 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 hover:shadow-md`}
               >
                 <div className="text-center">
-                  <div className="text-3xl mb-2">{action.icon}</div>
+                  <div className="text-2xl mb-2">•</div>
                   <div className="text-sm font-medium">{action.label}</div>
                 </div>
               </button>
