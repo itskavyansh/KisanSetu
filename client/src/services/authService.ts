@@ -1,4 +1,4 @@
-import { auth } from '../firebase';
+import { auth } from '../config/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import apiClient from './apiService';
 

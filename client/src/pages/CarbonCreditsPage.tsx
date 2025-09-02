@@ -1,588 +1,796 @@
-// client/src/pages/CarbonCreditsPage.tsx
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend, AreaChart, Area } from 'recharts';
-import { carbonCreditsAPI } from '../services/carbonCreditsService';
-import ChartErrorBoundary from '../components/common/ChartErrorBoundary';
-import { isValidLineChartData, isValidAreaChartData } from '../utils/chartDataValidator';
+import React, { useState } from 'react';
+import { 
+  Activity, 
+  TrendingUp, 
+  Wallet, 
+  Leaf, 
+  Users, 
+  Building2, 
+  CheckCircle, 
+  Clock, 
+  DollarSign,
+  BarChart3,
+  MapPin,
+  Calendar,
+  ArrowUpRight,
+  ArrowDownRight,
+  Eye,
+  Download,
+  Filter,
+  Search,
+  Star,
+  Award,
+  Shield,
+  Zap,
+  Target,
+  PieChart as LucidePieChart
+} from 'lucide-react';
+import { 
+  ResponsiveContainer, 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area, 
+  BarChart, 
+  Bar, 
+  PieChart as RechartsPieChart, 
+  Cell,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  Legend,
+  Pie
+} from 'recharts';
 
-type ProjectType = 'tree_planting' | 'rice_cultivation' | 'soil_management';
-type UnitType = 'kg' | 't';
-type Scenario = {
-  id: string;
-  name: string;
-  projectType: ProjectType;
-  location: string;
-  startDate: string;
-  details: any;
-  result?: any;
-  createdAt: string;
+// Mock data for demonstration
+const mockData = {
+  farmerDashboard: {
+    dataCollection: {
+      status: 'Active',
+      lastSync: '2 hours ago',
+      devicesConnected: 3,
+      dataPoints: 1247
+    },
+    aiGuidance: [
+      {
+        id: 1,
+        type: 'recommendation',
+        title: 'Optimize Irrigation Schedule',
+        description: 'Based on soil moisture data, reduce watering frequency by 20%',
+        priority: 'high',
+        impact: '+15% water efficiency'
+      },
+      {
+        id: 2,
+        type: 'alert',
+        title: 'Soil pH Adjustment Needed',
+        description: 'Soil pH is 5.2, consider adding lime to reach optimal 6.5-7.0',
+        priority: 'medium',
+        impact: '+8% crop yield'
+      },
+      {
+        id: 3,
+        type: 'tip',
+        title: 'Carbon Sequestration Opportunity',
+        description: 'Plant cover crops in fallow areas to increase carbon credits',
+        priority: 'low',
+        impact: '+2.5 t CO₂/year'
+      }
+    ],
+    creditsEarned: {
+      current: 45.2,
+      target: 100,
+      monthly: 12.3,
+      total: 156.7
+    }
+  },
+  buyerSection: {
+    availableCredits: [
+      {
+        id: 1,
+        projectName: 'Organic Rice Farming - Karnataka',
+        location: 'Mysuru, Karnataka',
+        credits: 25.5,
+        price: 850,
+        verification: 'Gold Standard',
+        farmer: 'Rajesh Kumar',
+        date: '2024-01-15',
+        impact: 'Water conservation, soil health'
+      },
+      {
+        id: 2,
+        projectName: 'Agroforestry Project - Tamil Nadu',
+        location: 'Coimbatore, Tamil Nadu',
+        credits: 18.2,
+        price: 920,
+        verification: 'VCS',
+        farmer: 'Priya Suresh',
+        date: '2024-01-10',
+        impact: 'Biodiversity, carbon sequestration'
+      },
+      {
+        id: 3,
+        projectName: 'Sustainable Cotton - Gujarat',
+        location: 'Ahmedabad, Gujarat',
+        credits: 32.1,
+        price: 780,
+        verification: 'Gold Standard',
+        farmer: 'Amit Patel',
+        date: '2024-01-08',
+        impact: 'Reduced pesticides, water efficiency'
+      }
+    ],
+    supplyChain: [
+      {
+        id: 1,
+        stage: 'Farm Verification',
+        status: 'completed',
+        date: '2024-01-01',
+        details: 'On-site inspection completed by certified auditor'
+      },
+      {
+        id: 2,
+        stage: 'Data Collection',
+        status: 'completed',
+        date: '2024-01-05',
+        details: 'IoT sensors deployed, baseline data established'
+      },
+      {
+        id: 3,
+        stage: 'Practice Implementation',
+        status: 'in-progress',
+        date: '2024-01-10',
+        details: 'Sustainable farming practices being implemented'
+      },
+      {
+        id: 4,
+        stage: 'Credit Generation',
+        status: 'pending',
+        date: '2024-02-01',
+        details: 'First batch of credits will be generated'
+      }
+    ]
+  },
+  wallet: {
+    balance: {
+      credits: 45.2,
+      inr: 38420,
+      totalValue: 42500
+    },
+    transactions: [
+      {
+        id: 1,
+        type: 'earned',
+        amount: 12.3,
+        inr: 10455,
+        description: 'Monthly carbon credits - Rice farming',
+        date: '2024-01-15',
+        status: 'completed'
+      },
+      {
+        id: 2,
+        type: 'redeemed',
+        amount: -5.0,
+        inr: -4250,
+        description: 'Redeemed for fertilizer subsidy',
+        date: '2024-01-10',
+        status: 'completed'
+      },
+      {
+        id: 3,
+        type: 'transferred',
+        amount: -2.5,
+        inr: -2125,
+        description: 'Transferred to community pool',
+        date: '2024-01-08',
+        status: 'completed'
+      }
+    ]
+  },
+  schemes: {
+    linked: [
+      {
+        id: 1,
+        name: 'PM-KISAN Scheme',
+        type: 'Direct Benefit Transfer',
+        amount: 6000,
+        status: 'active',
+        nextPayment: '2024-02-01'
+      },
+      {
+        id: 2,
+        name: 'Soil Health Card Scheme',
+        type: 'Subsidy',
+        amount: 2000,
+        status: 'active',
+        nextPayment: '2024-01-25'
+      }
+    ],
+    combined: {
+      totalSubsidies: 8000,
+      totalCredits: 45.2,
+      combinedValue: 46420
+    }
+  }
 };
 
 const CarbonCreditsPage: React.FC = () => {
-  const [market, setMarket] = useState<any>(null);
-  const [templates, setTemplates] = useState<any[]>([]);
-  const [calcResult, setCalcResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [calcError, setCalcError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'farmer' | 'buyer'>('farmer');
+  const [selectedFilter, setSelectedFilter] = useState('all');
 
-  // Form state
-  const [projectType, setProjectType] = useState<ProjectType>('tree_planting');
-  const [location, setLocation] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [details, setDetails] = useState<any>({ treeCount: 100, species: 'teak', area: undefined, practice: undefined, practices: [] });
+  const creditHistoryData = [
+    { month: 'Jan', credits: 12.3, earnings: 10455 },
+    { month: 'Feb', credits: 15.7, earnings: 13345 },
+    { month: 'Mar', credits: 18.2, earnings: 15470 },
+    { month: 'Apr', credits: 14.8, earnings: 12580 },
+    { month: 'May', credits: 16.5, earnings: 14025 },
+    { month: 'Jun', credits: 19.1, earnings: 16235 }
+  ];
 
-  // UX state
-  const [unit, setUnit] = useState<UnitType>('kg');
-  const [autoCalculate, setAutoCalculate] = useState(true);
-  const detailsKey = useMemo(() => JSON.stringify(details), [details]);
+  const projectTypeData = [
+    { name: 'Rice Farming', value: 35, color: '#10b981' },
+    { name: 'Tree Planting', value: 25, color: '#059669' },
+    { name: 'Soil Management', value: 20, color: '#047857' },
+    { name: 'Water Conservation', value: 20, color: '#065f46' }
+  ];
 
-  // Scenarios state
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
-
-  // Verification state
-  const [verifyProjectId, setVerifyProjectId] = useState('');
-  const [verificationResponse, setVerificationResponse] = useState<any>(null);
-  const [verificationStatus, setVerificationStatus] = useState<any>(null);
-
-  // UI refs/actions
-  const estimatorRef = useRef<HTMLDivElement | null>(null);
-  const scrollToEstimator = () => estimatorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  useEffect(() => {
-    (async () => {
-      const [m, t] = await Promise.all([
-        carbonCreditsAPI.getMarketInfo(),
-        carbonCreditsAPI.getProjectTemplates(),
-      ]);
-      setMarket(m.data);
-      setTemplates(t.data);
-    })();
-  }, []);
-
-  const priceHistoryData = useMemo(() => {
-    if (!market?.priceHistory || !Array.isArray(market.priceHistory)) return [] as Array<{ date: string; price: number }>;
-    
-    const count = market.priceHistory.length;
-    if (count === 0) return [];
-    
-    const today = new Date();
-    return market.priceHistory
-      .map((p: number, idx: number) => {
-        const price = Number(p);
-        if (isNaN(price) || !isFinite(price) || price < 0) {
-          return null;
-        }
-        
-        const d = new Date(today);
-        d.setDate(today.getDate() - (count - idx - 1));
-        return { date: d.toISOString().split('T')[0], price };
-      })
-      .filter((item: { date: string; price: number } | null): item is { date: string; price: number } => 
-        item !== null && 
-        typeof item.price === 'number' && 
-        !isNaN(item.price) && 
-        isFinite(item.price) &&
-        item.price >= 0
-      );
-  }, [market]);
-
-  const earningsSensitivityData = useMemo(() => {
-    if (!calcResult?.carbonCredits?.annual || !market?.currentPrice) return [] as Array<{ label: string; price: number; earnings: number }>;
-    
-    const annualKg = Number(calcResult.carbonCredits.annual);
-    const base = Number(market.currentPrice);
-    
-    // Ensure we have valid numbers
-    if (!annualKg || !base || annualKg <= 0 || base <= 0 || isNaN(annualKg) || isNaN(base)) {
-      return [];
-    }
-    
-    const factors = [0.8, 0.9, 1.0, 1.1, 1.2];
-    return factors.map(f => {
-      const price = Math.round(base * f);
-      const earnings = Math.round((annualKg * price) / 1000);
-      
-      // Double-check that we have valid numbers
-      if (isNaN(price) || isNaN(earnings) || !isFinite(price) || !isFinite(earnings)) {
-        return null;
-      }
-      
-      return { 
-        label: `${Math.round((f - 1) * 100)}%`, 
-        price: price, 
-        earnings: earnings 
-      };
-    }).filter((item): item is { label: string; price: number; earnings: number } => 
-      item !== null && 
-      typeof item.earnings === 'number' && 
-      !isNaN(item.earnings) && 
-      isFinite(item.earnings) &&
-      typeof item.price === 'number' && 
-      !isNaN(item.price) && 
-      isFinite(item.price)
-    );
-  }, [calcResult, market]);
-
-  // Load saved scenarios from localStorage
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('carbon_scenarios');
-      if (raw) setScenarios(JSON.parse(raw));
-    } catch {}
-  }, []);
-
-  // Persist scenarios
-  useEffect(() => {
-    try {
-      localStorage.setItem('carbon_scenarios', JSON.stringify(scenarios));
-    } catch {}
-  }, [scenarios]);
-
-  const calculateExample = async () => {
-    setLoading(true);
-    setCalcError(null);
-    try {
-      const r = await carbonCreditsAPI.calculateCredits({
-        projectType,
-        details: buildDetailsForSubmission(),
-        location: location || 'Mysuru, Karnataka',
-        startDate: startDate || '2024-01-01',
-      });
-      setCalcResult(r.data);
-    } catch (e: any) {
-      setCalcError(e?.response?.data?.error || 'Calculation failed');
-    } finally {
-      setLoading(false);
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'text-red-600 bg-red-50 border-red-200';
+      case 'medium': return 'text-yellow-600 bg-yellow-50 border-yellow-200';
+      case 'low': return 'text-green-600 bg-green-50 border-green-200';
+      default: return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
 
-  // Debounced auto-calc when inputs change
-  useEffect(() => {
-    if (!autoCalculate) return;
-    if (projectType === 'tree_planting' && (!details.treeCount || Number(details.treeCount) <= 0)) return;
-    if ((projectType === 'rice_cultivation' || projectType === 'soil_management') && (!details.area || Number(details.area) <= 0)) return;
-    const tid = setTimeout(() => {
-      calculateExample();
-    }, 500);
-    return () => clearTimeout(tid);
-  }, [projectType, detailsKey, location, startDate, autoCalculate]);
-
-  const handleTemplateClick = (templateId: string) => {
-    const map: Record<string, ProjectType> = {
-      tree_plantation: 'tree_planting',
-      climate_smart_rice: 'rice_cultivation',
-      soil_carbon: 'soil_management',
-    };
-    const mapped = map[templateId];
-    if (!mapped) return;
-    setProjectType(mapped);
-    if (mapped === 'tree_planting') setDetails({ treeCount: 200, species: 'teak' });
-    if (mapped === 'rice_cultivation') setDetails({ area: 2000, practice: 'direct_seeding' });
-    if (mapped === 'soil_management') setDetails({ area: 1000, practices: ['composting'] });
-    setTimeout(() => calculateExample(), 0);
-  };
-
-  const saveScenario = () => {
-    const name = window.prompt('Name this scenario', `${projectType} ${new Date().toLocaleString()}`);
-    if (!name) return;
-    const scenario: Scenario = {
-      id: `${Date.now()}`,
-      name,
-      projectType,
-      location,
-      startDate,
-      details,
-      result: calcResult,
-      createdAt: new Date().toISOString(),
-    };
-    setScenarios((prev) => [scenario, ...prev].slice(0, 10));
-  };
-
-  const loadScenario = (id: string) => {
-    const sc = scenarios.find(s => s.id === id);
-    if (!sc) return;
-    setProjectType(sc.projectType);
-    setLocation(sc.location);
-    setStartDate(sc.startDate);
-    setDetails(sc.details);
-    setCalcResult(sc.result || null);
-    setTimeout(() => calculateExample(), 0);
-  };
-
-  const deleteScenario = (id: string) => {
-    setScenarios((prev) => prev.filter(s => s.id !== id));
-  };
-
-  const formatCredits = (value: number) => {
-    if (value == null) return '-';
-    return unit === 'kg' ? Number(value).toLocaleString() : (Number(value) / 1000).toFixed(2);
-  };
-  const unitLabel = unit === 'kg' ? 'kg CO₂e' : 't CO₂e';
-
-  const buildDetailsForSubmission = () => {
-    if (projectType === 'tree_planting') {
-      return { treeCount: Number(details.treeCount) || 0, species: details.species || 'general' };
-    }
-    if (projectType === 'rice_cultivation') {
-      return { area: Number(details.area) || 0, practice: details.practice || 'direct_seeding' };
-    }
-    if (projectType === 'soil_management') {
-      return { area: Number(details.area) || 0, practices: Array.isArray(details.practices) ? details.practices : [] };
-    }
-    return {};
-  };
-
-  const practiceOptions = useMemo(() => ([
-    { key: 'alternate_wetting_drying', label: 'Alternate Wetting & Drying' },
-    { key: 'direct_seeding', label: 'Direct Seeding' },
-    { key: 'organic_farming', label: 'Organic Farming' },
-  ]), []);
-
-  const soilPracticeOptions = useMemo(() => ([
-    { key: 'cover_cropping', label: 'Cover Cropping' },
-    { key: 'composting', label: 'Composting' },
-    { key: 'no_till', label: 'No-till' },
-  ]), []);
-
-  const handleVerify = async () => {
-    if (!verifyProjectId) return;
-    setLoading(true);
-    setCalcError(null);
-    try {
-      const resp = await carbonCreditsAPI.verifyProject(verifyProjectId, {
-        requirements: calcResult?.verification?.requirements || [],
-      });
-      setVerificationResponse(resp.data);
-    } catch (e: any) {
-      setCalcError(e?.response?.data?.error || 'Verification failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCheckStatus = async () => {
-    if (!verifyProjectId) return;
-    setLoading(true);
-    setCalcError(null);
-    try {
-      const resp = await carbonCreditsAPI.getVerificationStatus(verifyProjectId);
-      setVerificationStatus(resp.data);
-    } catch (e: any) {
-      setCalcError(e?.response?.data?.error || 'Status check failed');
-    } finally {
-      setLoading(false);
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'text-green-600 bg-green-50';
+      case 'in-progress': return 'text-blue-600 bg-blue-50';
+      case 'pending': return 'text-yellow-600 bg-yellow-50';
+      default: return 'text-gray-600 bg-gray-50';
     }
   };
 
   return (
-    <div className="flex-1 overflow-auto relative min-h-screen p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Carbon Credits</h1>
-
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border rounded-lg p-6">
-        <div className="text-xl font-semibold mb-2">Earn by going climate-smart</div>
-        <p className="text-gray-700 mb-3">Reduce emissions or remove carbon on your farm and get paid for it. Estimate your potential carbon credits and earnings in minutes.</p>
-        <div className="flex flex-wrap gap-3 mt-2">
-          <button onClick={scrollToEstimator} className="bg-kisan-green text-white px-4 py-2 rounded-lg">Estimate my credits</button>
-          <button onClick={() => handleTemplateClick('tree_plantation')} className="bg-white border px-3 py-2 rounded-lg">Tree plantation template</button>
-          <button onClick={() => handleTemplateClick('climate_smart_rice')} className="bg-white border px-3 py-2 rounded-lg">Climate‑smart rice</button>
-          <button onClick={() => handleTemplateClick('soil_carbon')} className="bg-white border px-3 py-2 rounded-lg">Soil carbon</button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-white border rounded-lg p-5">
-          <div className="font-semibold mb-2">What are carbon credits?</div>
-          <p className="text-gray-700 mb-3">A carbon credit represents one tonne of carbon dioxide equivalent (CO₂e) that is avoided, reduced, or removed from the atmosphere.</p>
-          <ul className="list-disc ml-5 text-gray-700 space-y-1">
-            <li>Adopt practices like tree planting, water‑saving rice methods, or soil improvement.</li>
-            <li>These practices reduce emissions or capture carbon in soil/biomass.</li>
-            <li>Each tonne of CO₂e saved earns a credit that companies can buy to offset their emissions.</li>
-          </ul>
-        </div>
-        <div className="bg-white border rounded-lg p-5">
-          <div className="font-semibold mb-2">Why it matters</div>
-          <ul className="list-disc ml-5 text-gray-700 space-y-1 mb-3">
-            <li>Extra farm income for sustainable practices.</li>
-            <li>Healthier soils, better water retention, and long‑term productivity.</li>
-            <li>Supports climate action and attracts premium markets.</li>
-          </ul>
-          <div className="font-semibold mb-1">Eligibility at a glance</div>
-          <ul className="list-disc ml-5 text-gray-700 space-y-1">
-            <li>Defined land/field area with GPS or clear location details</li>
-            <li>Basic documentation: photos and simple records</li>
-            <li>Willingness to follow recommended practices</li>
-          </ul>
-        </div>
-      </div>
-
-      {market && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="font-semibold mb-1">Live Carbon Price</div>
-          <div className="text-gray-700">₹{market.currentPrice}/t CO₂e · {market.trend} {market.source ? `(source: ${market.source})` : ''}</div>
-        </div>
-      )}
-
-      {!loading && market && priceHistoryData.length > 0 && isValidLineChartData(priceHistoryData, 'price') && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="font-semibold mb-2">Carbon Price (last 30 days)</div>
-          <div style={{ height: 260 }}>
-            <ChartErrorBoundary>
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={priceHistoryData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tickFormatter={(v) => new Date(v).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} tick={{ fontSize: 12 }} />
-                  <YAxis tickFormatter={(v) => `₹${v}`} tick={{ fontSize: 12 }} />
-                  <Tooltip labelFormatter={(v) => new Date(v as string).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} formatter={(val: any) => [`₹${val}`, 'Price']} />
-                  <Legend />
-                  <Line type="monotone" dataKey="price" stroke="#10b981" strokeWidth={2} name="Price (₹/t CO₂e)" />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartErrorBoundary>
-          </div>
-        </div>
-      )}
-
-      <div ref={estimatorRef} className="bg-white border rounded-lg p-4 space-y-4">
-        <div className="font-semibold mb-2">Project Templates</div>
-        <ul className="list-disc ml-6 text-gray-700">
-          {templates.map((t) => (
-            <li key={t.id}>
-              <button className="text-left hover:underline" onClick={() => handleTemplateClick(t.id)}>{t.name}</button> — {t.description}
-            </li>
-          ))}
-        </ul>
-
-        <div className="h-px bg-gray-200" />
-
-        <div className="flex items-center justify-between">
-          <div className="font-semibold">Estimate Your Project</div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600">Unit</span>
-              <select className="border rounded px-2 py-1 text-sm" value={unit} onChange={(e) => setUnit(e.target.value as UnitType)}>
-                <option value="kg">kg CO₂e</option>
-                <option value="t">t CO₂e</option>
-              </select>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-sm border p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <Leaf className="h-8 w-8 text-green-600" />
+                Carbon Credits Dashboard
+              </h1>
+              <p className="text-gray-600 mt-2">Track, trade, and optimize your carbon credit journey</p>
             </div>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input type="checkbox" checked={autoCalculate} onChange={(e) => setAutoCalculate(e.target.checked)} />
-              Auto-calc
-            </label>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-500">Current Price</p>
+                <p className="text-2xl font-bold text-green-600">₹850/t CO₂e</p>
+                <p className="text-sm text-green-600 flex items-center gap-1">
+                  <TrendingUp className="h-4 w-4" />
+                  +5.2% this month
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Project Type</label>
-            <select
-              className="w-full border rounded px-3 py-2"
-              value={projectType}
-              onChange={(e) => {
-                const value = e.target.value as typeof projectType;
-                setProjectType(value);
-                // Reset detail fields for clarity when switching types
-                if (value === 'tree_planting') setDetails({ treeCount: 100, species: 'teak' });
-                if (value === 'rice_cultivation') setDetails({ area: 1000, practice: 'direct_seeding' });
-                if (value === 'soil_management') setDetails({ area: 1000, practices: [] });
-              }}
+        {/* Tab Navigation */}
+        <div className="bg-white rounded-2xl shadow-sm border p-1">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setActiveTab('farmer')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all ${
+                activeTab === 'farmer'
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
             >
-              <option value="tree_planting">Tree Planting</option>
-              <option value="rice_cultivation">Rice Cultivation</option>
-              <option value="soil_management">Soil Management</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Location</label>
-            <input className="w-full border rounded px-3 py-2" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="e.g., Mysuru, Karnataka" />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-700 mb-1">Start Date</label>
-            <input type="date" className="w-full border rounded px-3 py-2" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <Users className="h-5 w-5" />
+              Farmer Dashboard
+            </button>
+            <button
+              onClick={() => setActiveTab('buyer')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all ${
+                activeTab === 'buyer'
+                  ? 'bg-green-600 text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Building2 className="h-5 w-5" />
+              Buyer Portal
+            </button>
           </div>
         </div>
 
-        {projectType === 'tree_planting' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Tree Count</label>
-              <input type="number" className="w-full border rounded px-3 py-2" value={details.treeCount || ''} onChange={(e) => setDetails({ ...details, treeCount: e.target.value })} />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Species</label>
-              <select className="w-full border rounded px-3 py-2" value={details.species || 'teak'} onChange={(e) => setDetails({ ...details, species: e.target.value })}>
-                <option value="teak">Teak</option>
-                <option value="mango">Mango</option>
-                <option value="coconut">Coconut</option>
-                <option value="neem">Neem</option>
-                <option value="general">Other/General</option>
-              </select>
-            </div>
-          </div>
-        )}
+        {activeTab === 'farmer' && (
+          <div className="space-y-6">
+            {/* Farmer Dashboard Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Credits Earned</p>
+                    <p className="text-2xl font-bold text-gray-900">{mockData.farmerDashboard.creditsEarned.total}</p>
+                    <p className="text-sm text-green-600">+{mockData.farmerDashboard.creditsEarned.monthly} this month</p>
+                  </div>
+                  <div className="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Award className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+              </div>
 
-        {projectType === 'rice_cultivation' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Area (sq. meters)</label>
-              <input type="number" className="w-full border rounded px-3 py-2" value={details.area || ''} onChange={(e) => setDetails({ ...details, area: e.target.value })} />
-            </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Practice</label>
-              <select className="w-full border rounded px-3 py-2" value={details.practice || 'direct_seeding'} onChange={(e) => setDetails({ ...details, practice: e.target.value })}>
-                {practiceOptions.map(p => (
-                  <option key={p.key} value={p.key}>{p.label}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-        )}
+              <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Current Balance</p>
+                    <p className="text-2xl font-bold text-gray-900">{mockData.farmerDashboard.creditsEarned.current}</p>
+                    <p className="text-sm text-gray-600">t CO₂e</p>
+                  </div>
+                  <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Wallet className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+              </div>
 
-        {projectType === 'soil_management' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Area (sq. meters)</label>
-              <input type="number" className="w-full border rounded px-3 py-2" value={details.area || ''} onChange={(e) => setDetails({ ...details, area: e.target.value })} />
+              <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Data Collection</p>
+                    <p className="text-2xl font-bold text-gray-900">{mockData.farmerDashboard.dataCollection.status}</p>
+                    <p className="text-sm text-gray-600">Last sync: {mockData.farmerDashboard.dataCollection.lastSync}</p>
+                  </div>
+                  <div className="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                    <Activity className="h-6 w-6 text-purple-600" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Monthly Earnings</p>
+                    <p className="text-2xl font-bold text-gray-900">₹{mockData.wallet.balance.inr.toLocaleString()}</p>
+                    <p className="text-sm text-green-600">+12% vs last month</p>
+                  </div>
+                  <div className="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-yellow-600" />
+                  </div>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm text-gray-700 mb-1">Practices</label>
-              <div className="space-y-2">
-                {soilPracticeOptions.map(sp => (
-                  <label key={sp.key} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={(details.practices || []).includes(sp.key)}
-                      onChange={(e) => {
-                        const set = new Set(details.practices || []);
-                        if (e.target.checked) set.add(sp.key); else set.delete(sp.key);
-                        setDetails({ ...details, practices: Array.from(set) });
-                      }}
-                    />
-                    <span>{sp.label}</span>
-                  </label>
+
+            {/* Data Collection Status */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <Activity className="h-5 w-5 text-green-600" />
+                  Automated Data Collection
+                </h2>
+                <div className="flex items-center gap-2">
+                  <div className="h-3 w-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-green-600 font-medium">Active</span>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center">
+                  <div className="h-16 w-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Zap className="h-8 w-8 text-green-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{mockData.farmerDashboard.dataCollection.devicesConnected}</p>
+                  <p className="text-sm text-gray-600">Devices Connected</p>
+                </div>
+                <div className="text-center">
+                  <div className="h-16 w-16 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <BarChart3 className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{mockData.farmerDashboard.dataCollection.dataPoints.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">Data Points Collected</p>
+                </div>
+                <div className="text-center">
+                  <div className="h-16 w-16 bg-purple-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                    <Clock className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900">{mockData.farmerDashboard.dataCollection.lastSync}</p>
+                  <p className="text-sm text-gray-600">Last Sync</p>
+                </div>
+              </div>
+            </div>
+
+            {/* AI Guidance */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                <Target className="h-5 w-5 text-blue-600" />
+                AI Guidance & Recommendations
+              </h2>
+              
+              <div className="space-y-4">
+                {mockData.farmerDashboard.aiGuidance.map((guidance) => (
+                  <div key={guidance.id} className={`p-4 rounded-xl border ${getPriorityColor(guidance.priority)}`}>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold">{guidance.title}</h3>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(guidance.priority)}`}>
+                            {guidance.priority}
+                          </span>
+                        </div>
+                        <p className="text-sm mb-2">{guidance.description}</p>
+                        <p className="text-sm font-medium text-green-600">{guidance.impact}</p>
+                      </div>
+                      <button className="ml-4 p-2 hover:bg-white/50 rounded-lg transition-colors">
+                        <ArrowUpRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Credits Progress */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Carbon Credits Progress
+              </h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm font-medium text-gray-700">Annual Target Progress</span>
+                    <span className="text-sm text-gray-600">{mockData.farmerDashboard.creditsEarned.current}/{mockData.farmerDashboard.creditsEarned.target} t CO₂e</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-green-600 h-3 rounded-full transition-all duration-500"
+                      style={{ width: `${(mockData.farmerDashboard.creditsEarned.current / mockData.farmerDashboard.creditsEarned.target) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">
+                    {Math.round((mockData.farmerDashboard.creditsEarned.current / mockData.farmerDashboard.creditsEarned.target) * 100)}% of annual target achieved
+                  </p>
+                </div>
+                
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={creditHistoryData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" />
+                      <YAxis />
+                      <Tooltip formatter={(value, name) => [name === 'credits' ? `${value} t CO₂e` : `₹${value}`, name === 'credits' ? 'Credits' : 'Earnings']} />
+                      <Legend />
+                      <Line type="monotone" dataKey="credits" stroke="#10b981" strokeWidth={3} name="Credits" />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* Digital Wallet */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                <Wallet className="h-5 w-5 text-blue-600" />
+                Digital Wallet
+              </h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                  <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-semibold">Carbon Credits</h3>
+                      <Leaf className="h-6 w-6" />
+                    </div>
+                    <p className="text-3xl font-bold mb-2">{mockData.wallet.balance.credits}</p>
+                    <p className="text-green-100">t CO₂e</p>
+                  </div>
+                  
+                  <div className="bg-gray-50 rounded-xl p-4 mt-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">INR Equivalent</span>
+                      <span className="text-sm font-medium">₹{mockData.wallet.balance.inr.toLocaleString()}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">Total Value</span>
+                      <span className="text-sm font-medium">₹{mockData.wallet.balance.totalValue.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="lg:col-span-2">
+                  <h3 className="font-semibold text-gray-900 mb-4">Recent Transactions</h3>
+                  <div className="space-y-3">
+                    {mockData.wallet.transactions.map((transaction) => (
+                      <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                            transaction.type === 'earned' ? 'bg-green-100' : 
+                            transaction.type === 'redeemed' ? 'bg-red-100' : 'bg-blue-100'
+                          }`}>
+                            {transaction.type === 'earned' ? (
+                              <ArrowUpRight className="h-5 w-5 text-green-600" />
+                            ) : transaction.type === 'redeemed' ? (
+                              <ArrowDownRight className="h-5 w-5 text-red-600" />
+                            ) : (
+                              <ArrowUpRight className="h-5 w-5 text-blue-600" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-900">{transaction.description}</p>
+                            <p className="text-sm text-gray-600">{transaction.date}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${transaction.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {transaction.amount > 0 ? '+' : ''}{transaction.amount} t CO₂e
+                          </p>
+                          <p className="text-sm text-gray-600">₹{Math.abs(transaction.inr).toLocaleString()}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Scheme Integration */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                <Shield className="h-5 w-5 text-purple-600" />
+                Government Scheme Integration
+              </h2>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Linked Schemes</h3>
+                  <div className="space-y-3">
+                    {mockData.schemes.linked.map((scheme) => (
+                      <div key={scheme.id} className="p-4 border rounded-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium text-gray-900">{scheme.name}</h4>
+                          <span className="px-2 py-1 bg-green-100 text-green-600 rounded-full text-xs font-medium">
+                            {scheme.status}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{scheme.type}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">₹{scheme.amount.toLocaleString()}</span>
+                          <span className="text-sm text-gray-600">Next: {scheme.nextPayment}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-4">Combined Benefits</h3>
+                  <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-purple-100 text-sm">Government Subsidies</p>
+                        <p className="text-2xl font-bold">₹{mockData.schemes.combined.totalSubsidies.toLocaleString()}</p>
+                      </div>
+                      <div>
+                        <p className="text-purple-100 text-sm">Carbon Credits</p>
+                        <p className="text-2xl font-bold">{mockData.schemes.combined.totalCredits} t CO₂e</p>
+                      </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-purple-400">
+                      <p className="text-purple-100 text-sm">Total Combined Value</p>
+                      <p className="text-3xl font-bold">₹{mockData.schemes.combined.combinedValue.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4">
+                    <h4 className="font-medium text-gray-900 mb-3">Project Distribution</h4>
+                    <div className="h-48">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <RechartsPieChart>
+                          <Pie
+                            data={projectTypeData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={60}
+                            dataKey="value"
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                          >
+                            {projectTypeData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </RechartsPieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         )}
 
-        <div className="flex items-center gap-3">
-          <button onClick={calculateExample} disabled={loading} className="bg-kisan-green text-white px-4 py-2 rounded-lg">
-            {loading ? 'Calculating...' : 'Calculate Estimate'}
-          </button>
-          <button onClick={saveScenario} disabled={loading} className="bg-white border px-4 py-2 rounded-lg">Save Scenario</button>
-          {calcResult && (
-            <span className="text-gray-600">Last updated {new Date(calcResult.timestamp).toLocaleString()}</span>
-          )}
-        </div>
+        {activeTab === 'buyer' && (
+          <div className="space-y-6">
+            {/* Buyer Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Available Credits</p>
+                    <p className="text-2xl font-bold text-gray-900">75.8</p>
+                    <p className="text-sm text-gray-600">t CO₂e</p>
+                  </div>
+                  <div className="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Leaf className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+              </div>
 
-        <div className="h-px bg-gray-200" />
+              <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Verified Projects</p>
+                    <p className="text-2xl font-bold text-gray-900">12</p>
+                    <p className="text-sm text-green-600">+3 this month</p>
+                  </div>
+                  <div className="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <CheckCircle className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+              </div>
 
-        <div className="font-semibold">Verification</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-          <div className="md:col-span-1">
-            <label className="block text-sm text-gray-700 mb-1">Project ID</label>
-            <input className="w-full border rounded px-3 py-2" value={verifyProjectId} onChange={(e) => setVerifyProjectId(e.target.value)} placeholder="e.g., demo-123" />
-          </div>
-          <div className="flex gap-3 md:col-span-2">
-            <button onClick={handleVerify} disabled={loading || !verifyProjectId} className="bg-blue-600 text-white px-4 py-2 rounded-lg">Submit for Verification</button>
-            <button onClick={handleCheckStatus} disabled={loading || !verifyProjectId} className="bg-gray-800 text-white px-4 py-2 rounded-lg">Check Status</button>
-          </div>
-        </div>
-      </div>
+              <div className="bg-white rounded-2xl shadow-sm border p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Investment</p>
+                    <p className="text-2xl font-bold text-gray-900">₹64.2L</p>
+                    <p className="text-sm text-green-600">+15% vs last year</p>
+                  </div>
+                  <div className="h-12 w-12 bg-yellow-100 rounded-xl flex items-center justify-center">
+                    <DollarSign className="h-6 w-6 text-yellow-600" />
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      {calcError && <div className="text-red-600">{calcError}</div>}
-
-      {loading && !calcResult && (
-        <div className="bg-white border rounded-lg p-4 animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-32 mb-3" />
-          <div className="h-4 bg-gray-200 rounded w-48 mb-2" />
-          <div className="h-4 bg-gray-200 rounded w-40" />
-        </div>
-      )}
-
-      {calcResult && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="font-semibold mb-2">Estimates</div>
-          <div>Annual: {formatCredits(calcResult.carbonCredits.annual)} {unitLabel}</div>
-          <div>Lifetime: {formatCredits(calcResult.carbonCredits.lifetime)} {unitLabel}</div>
-          <div className="mt-2">Annual Earnings: ₹{calcResult.financialBenefits.annualEarnings}</div>
-        </div>
-      )}
-
-      {!loading && market && calcResult && earningsSensitivityData && earningsSensitivityData.length > 0 && isValidAreaChartData(earningsSensitivityData, 'earnings') && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="font-semibold mb-2">Earnings vs Price (±20%)</div>
-          <div style={{ height: 240 }}>
-            <ChartErrorBoundary>
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={earningsSensitivityData} margin={{ top: 10, right: 20, bottom: 0, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                  <YAxis tickFormatter={(v) => `₹${v}`} tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(v: any, n: string) => [`₹${v}`, n === 'earnings' ? 'Earnings' : n]} />
-                  <Legend />
-                  <Area type="monotone" dataKey="earnings" stroke="#3b82f6" fill="#bfdbfe" fillOpacity={0.5} name="Annual Earnings" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </ChartErrorBoundary>
-          </div>
-        </div>
-      )}
-
-      {verificationResponse && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="font-semibold mb-2">Verification Submitted</div>
-          <div className="text-gray-700">Status: {verificationResponse.status}</div>
-          <div className="text-gray-700">Estimated Completion: {new Date(verificationResponse.estimatedCompletion).toLocaleString()}</div>
-        </div>
-      )}
-
-      {verificationStatus && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="font-semibold mb-2">Verification Status</div>
-          <div className="text-gray-700">Status: {verificationStatus.status}</div>
-          <div className="text-gray-700">Progress: {verificationStatus.progress}%</div>
-          <div className="text-gray-700">Next Milestone: {verificationStatus.nextMilestone}</div>
-          <div className="text-gray-700">ETA: {new Date(verificationStatus.estimatedCompletion).toLocaleString()}</div>
-        </div>
-      )}
-
-      {scenarios.length > 0 && (
-        <div className="bg-white border rounded-lg p-4">
-          <div className="font-semibold mb-3">Saved Scenarios</div>
-          <div className="overflow-auto">
-            <table className="min-w-full text-sm">
-              <thead className="text-left text-gray-600">
-                <tr>
-                  <th className="py-2 pr-4">Name</th>
-                  <th className="py-2 pr-4">Type</th>
-                  <th className="py-2 pr-4">Annual</th>
-                  <th className="py-2 pr-4">Lifetime</th>
-                  <th className="py-2 pr-4">Annual ₹</th>
-                  <th className="py-2 pr-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {scenarios.map(s => (
-                  <tr key={s.id} className="border-t">
-                    <td className="py-2 pr-4">{s.name}</td>
-                    <td className="py-2 pr-4">{s.projectType.replace('_', ' ')}</td>
-                    <td className="py-2 pr-4">{s.result ? `${formatCredits(s.result.carbonCredits.annual)} ${unitLabel}` : '-'}</td>
-                    <td className="py-2 pr-4">{s.result ? `${formatCredits(s.result.carbonCredits.lifetime)} ${unitLabel}` : '-'}</td>
-                    <td className="py-2 pr-4">{s.result ? `₹${s.result.financialBenefits.annualEarnings}` : '-'}</td>
-                    <td className="py-2 pr-4 space-x-2">
-                      <button className="text-blue-600 hover:underline" onClick={() => loadScenario(s.id)}>Load</button>
-                      <button className="text-red-600 hover:underline" onClick={() => deleteScenario(s.id)}>Delete</button>
-                    </td>
-                  </tr>
+            {/* Available Credits */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                  <Leaf className="h-5 w-5 text-green-600" />
+                  Verifiable Carbon Credits
+                </h2>
+                <div className="flex items-center gap-3">
+                  <div className="relative">
+                    <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="text"
+                      placeholder="Search projects..."
+                      className="pl-10 pr-4 py-2 border rounded-lg text-sm"
+                    />
+                  </div>
+                  <select
+                    value={selectedFilter}
+                    onChange={(e) => setSelectedFilter(e.target.value)}
+                    className="px-3 py-2 border rounded-lg text-sm"
+                  >
+                    <option value="all">All Projects</option>
+                    <option value="gold-standard">Gold Standard</option>
+                    <option value="vcs">VCS</option>
+                    <option value="organic">Organic</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {mockData.buyerSection.availableCredits.map((credit) => (
+                  <div key={credit.id} className="border rounded-xl p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-4">
+                      <div>
+                        <h3 className="font-semibold text-gray-900 mb-1">{credit.projectName}</h3>
+                        <div className="flex items-center gap-1 text-sm text-gray-600">
+                          <MapPin className="h-4 w-4" />
+                          {credit.location}
+                        </div>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        credit.verification === 'Gold Standard' ? 'bg-yellow-100 text-yellow-600' : 'bg-blue-100 text-blue-600'
+                      }`}>
+                        {credit.verification}
+                      </span>
+                    </div>
+                    
+                    <div className="space-y-3 mb-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Credits Available</span>
+                        <span className="font-semibold">{credit.credits} t CO₂e</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Price per t CO₂e</span>
+                        <span className="font-semibold">₹{credit.price}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Farmer</span>
+                        <span className="font-medium">{credit.farmer}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-gray-600">Date</span>
+                        <span className="text-sm">{credit.date}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mb-4">
+                      <p className="text-sm text-gray-600 mb-2">Impact:</p>
+                      <p className="text-sm text-green-600">{credit.impact}</p>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <button className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-green-700 transition-colors">
+                        Purchase
+                      </button>
+                      <button className="p-2 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <Eye className="h-4 w-4" />
+                      </button>
+                      <button className="p-2 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <Download className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
+
+            {/* Supply Chain Transparency */}
+            <div className="bg-white rounded-2xl shadow-sm border p-6">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                <Shield className="h-5 w-5 text-blue-600" />
+                Supply Chain Transparency
+              </h2>
+              
+              <div className="space-y-4">
+                {mockData.buyerSection.supplyChain.map((stage, index) => (
+                  <div key={stage.id} className="flex items-start gap-4">
+                    <div className="flex flex-col items-center">
+                      <div className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                        stage.status === 'completed' ? 'bg-green-100' :
+                        stage.status === 'in-progress' ? 'bg-blue-100' : 'bg-gray-100'
+                      }`}>
+                        {stage.status === 'completed' ? (
+                          <CheckCircle className="h-5 w-5 text-green-600" />
+                        ) : stage.status === 'in-progress' ? (
+                          <Clock className="h-5 w-5 text-blue-600" />
+                        ) : (
+                          <div className="h-2 w-2 bg-gray-400 rounded-full"></div>
+                        )}
+                      </div>
+                      {index < mockData.buyerSection.supplyChain.length - 1 && (
+                        <div className={`w-0.5 h-8 mt-2 ${
+                          stage.status === 'completed' ? 'bg-green-200' : 'bg-gray-200'
+                        }`}></div>
+                      )}
+                    </div>
+                    
+                    <div className="flex-1 pb-6">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold text-gray-900">{stage.stage}</h3>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(stage.status)}`}>
+                          {stage.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{stage.details}</p>
+                      <p className="text-sm text-gray-500">{stage.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
